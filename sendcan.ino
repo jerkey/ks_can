@@ -10,13 +10,6 @@
 
 #include <SPI.h>
 #include <MCP2515.h>
-#include <SoftwareSerial.h>
-
-SoftwareSerial serialLCD(3,6);
-#define LCD_COMMAND 0xFE
-#define LCD_CLEAR   0x01
-#define LCD_LINE1   0x80
-#define LCD_LINE2   0xC0
 
 int secondCnt = 0;
 int minuteCnt = 0;
@@ -29,11 +22,9 @@ double minuteMpg = 0.0, allMpg = 0.0;
 
 void setup()
 {
-  serialLCD.begin(9600);
+  Serial.begin(9600);
   
-  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_CLEAR);
-  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE1);
-  serialLCD.print("Starting....");
+  Serial.print("Starting....");
   
   //Reset
   if(!MCP2515::initCAN(CAN_BAUD_500K))
@@ -77,13 +68,10 @@ void loop()
       allMpg = 0;
   }
     
-  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_CLEAR);
-  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE1);
-  serialLCD.print(miPerHr,0); 
-  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE2);
-  serialLCD.print(mpg,1); serialLCD.print(" "); 
-  serialLCD.print(minuteMpg,1); serialLCD.print(" "); 
-  serialLCD.print(allMpg,1);
+  Serial.print(miPerHr,0); 
+  Serial.print(mpg,1); Serial.print(" "); 
+  Serial.print(minuteMpg,1); Serial.print(" "); 
+  Serial.print(allMpg,1);
   
   delay(975);
 
@@ -91,9 +79,7 @@ void loop()
 
 void abort(char *msg)
 {
-  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_CLEAR);
-  serialLCD.write(LCD_COMMAND); serialLCD.write(LCD_LINE1);
-  serialLCD.print(msg);
+  Serial.print(msg);
 
   while(true);
 }
