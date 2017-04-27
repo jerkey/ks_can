@@ -1,85 +1,92 @@
-/*
-  OBDMPG - Display current speed, and gas mileage stats
-  (instantaneous, past minute, trip) on serial LCD display.
-  Uses MCP2515 library.
-  
-  Written by Frank Kienast in November, 2010.
-  
-  Modified by Frank Kienast in October, 2012 for Arduino 1.
-*/
+/****************************************************************************
+CAN-Bus Demo
+Toni Klopfenstein @ SparkFun Electronics
+September 2015
+https://github.com/sparkfun/CAN-Bus_Shield
+This example sketch works with the CAN-Bus shield from SparkFun Electronics.
+It enables the MCP2515 CAN controller and MCP2551 CAN-Bus driver, and demos
+using the chips to communicate with a CAN-Bus.
+Developed for Arduino 1.6.5
+Based off of original example ecu_reader_logger by: Sukkin Pang
+SK Pang Electronics www.skpang.co.uk
+*************************************************************************/
 
-#include <SPI.h>
-#include <MCP2515.h>
+#include "Canbus.h"
+char UserInput;
+int data;
+char buffer[456];  //Data will be temporarily stored to this buffer before being written to the file
 
-int secondCnt = 0;
-int minuteCnt = 0;
-double secondMafSum = 0.0;
-double minuteMafSum = 0.0;
-double secondVelSum = 0.0;
-double minuteVelSum = 0.0;
-double minuteMpg = 0.0, allMpg = 0.0;
+//********************************Setup Loop*********************************//
 
+void setup(){
+Serial.begin(9600);
+Serial.println("CAN-Bus Demo");
 
-void setup()
-{
-  Serial.begin(9600);
-  
-  Serial.print("Starting....");
-  
-  //Reset
-  if(!MCP2515::initCAN(CAN_BAUD_500K))
-    abort("Failed initCAN");
-
-  //Set to normal mode non single shot
-  if(!MCP2515::setCANNormalMode(LOW))
-    abort("Failed CANNormalMode"); 
+if(Canbus.init(CANSPEED_500)) { /* Initialise MCP2515 CAN controller at the specified speed */
+    Serial.println("CAN Init ok");
+  } else {
+    Serial.println("Can't init CAN");
+  } 
+delay(1000); 
+Serial.println("Please choose a menu option.");
+Serial.println("1.Speed");
+Serial.println("2.RPM");
+Serial.println("3.Throttle");
+Serial.println("4.Coolant Temperature");
+Serial.println("5.O2 Voltage");
+Serial.println("6.MAF Sensor");
 }
 
-void loop()
-{
-  long val;
-  double kmPerHr = 0.0, miPerHr = 0.0, maf = 0.0, mpg = 0.0;
-  
-  secondCnt = (secondCnt + 1) % 60;
+void loop(){
+  while(Serial.available()){
+    UserInput = Serial.read();
 
-  kmPerHr = (double) MCP2515::queryOBD(0x0d);
-  miPerHr = 0.6214 * kmPerHr;
-  maf = (double) (MCP2515::queryOBD(0x10));
-  if(maf > 0)
-    mpg = 710.7 * kmPerHr / maf;
-  else
-    mpg = 0;
-  secondMafSum += maf;
-  secondVelSum += kmPerHr;
-    
-  if(secondCnt == 0)
-  {
-    if(secondMafSum > 0)
-      minuteMpg = 710.7 * secondVelSum / secondMafSum;
-    else
-      minuteMpg = 0;
+    if (UserInput=='1'){
+     Canbus.ecu_req(VEHICLE_SPEED, buffer);
+     Serial.print("Vehicle Speed: ");
+     Serial.println(buffer);
+     delay(500);
+    }
+    else if (UserInput=='2'){
+     Canbus.ecu_req(ENGINE_RPM, buffer);
+     Serial.print("Engine RPM: ");
+     Serial.println(buffer);
+     delay(500);
 
-    minuteCnt++;
-    minuteMafSum += secondMafSum; secondMafSum = 0;
-    minuteVelSum += secondVelSum; secondVelSum = 0;
-    if(minuteMafSum > 0)
-      allMpg = 710.7 * minuteVelSum / minuteMafSum;
+    }
+    else if (UserInput=='3'){
+     Canbus.ecu_req(THROTTLE, buffer);
+     Serial.print("Throttle: ");
+     Serial.println(buffer);
+     delay(500);
+
+    }
+    else if (UserInput=='4'){
+     Canbus.ecu_req(ENGINE_COOLANT_TEMP, buffer);
+     Serial.print("Engine Coolant Temp: ");
+     Serial.println(buffer);
+     delay(500);
+
+    }
+    else if (UserInput=='5'){
+     Canbus.ecu_req(O2_VOLTAGE, buffer);
+     Serial.print("O2 Voltage: ");
+     Serial.println(buffer);
+     delay(500);
+
+    }
+    else if (UserInput=='6'){
+     Canbus.ecu_req(MAF_SENSOR, buffer);
+     Serial.print("MAF Sensor: ");
+     Serial.println(buffer);
+     delay(500);
+
+    }
     else
-      allMpg = 0;
+    {
+      Serial.println(UserInput);
+      Serial.println("Not a valid input.");
+      Serial.println("Please enter a valid option.");
+    }
   }
-    
-  Serial.print(miPerHr,0); 
-  Serial.print(mpg,1); Serial.print(" "); 
-  Serial.print(minuteMpg,1); Serial.print(" "); 
-  Serial.print(allMpg,1);
-  
-  delay(975);
-
-}
-
-void abort(char *msg)
-{
-  Serial.print(msg);
-
-  while(true);
 }
