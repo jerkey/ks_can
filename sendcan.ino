@@ -8,8 +8,8 @@
   Modified by Frank Kienast in October, 2012 for Arduino 1.
 */
 
-#include <SPI.h>
-#include <MCP2515.h>
+#include "TinySoftwareSPI.h"
+#include "MCP2515.h"
 
 int secondCnt = 0;
 int minuteCnt = 0;
