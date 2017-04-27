@@ -136,8 +136,10 @@ uint8_t mcp2515_init(uint8_t speed)
 	SET(MCP2515_INT);
 	
 	// active SPI master interface
-	SPCR = (1<<SPE)|(1<<MSTR) | (0<<SPR1)|(1<<SPR0);
-	SPSR = 0;
+	// SPCR = (1<<SPE)|(1<<MSTR) | (0<<SPR1)|(1<<SPR0); // enable, master,
+	// SPSR = 0; // f.osc / 16 (SPR0 set above)
+        SoftSPIClass.begin();
+        SoftSPIClass.setDataMode(SPI_MODE0); // just a guess as to which mode
 	
 	// reset MCP2515 by software reset.
 	// After this he is in configuration mode.

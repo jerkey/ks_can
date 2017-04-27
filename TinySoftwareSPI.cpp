@@ -12,6 +12,8 @@
 
 #include "TinySoftwareSPI.h"
 #include "Arduino.h"
+#include "defaults.h" // pinouts of kitchen sink to MCP2515
+#include "global.h" // SET() RESET() IS_SET() SET_OUTPUT()
 
 SoftSPIClass::SoftSPIClass(){
 	_bitOrder = MSBFIRST;
@@ -19,81 +21,81 @@ SoftSPIClass::SoftSPIClass(){
 	transferType = &SoftSPIClass::transferMode0;
 }
 
-#if defined(SS) && defined(MOSI) && defined(MISO) && defined(SCK)
+// #if defined(SS) && defined(MOSI) && defined(MISO) && defined(SCK)
 void SoftSPIClass::begin(){
-	begin(SCK,MOSI,MISO,SS);
+	begin(); //SCK,MOSI,MISO,SS);
 }
 #endif
 
-void SoftSPIClass::begin(byte SCK_, byte MOSI_, byte MISO_, byte SS_){
-	_SS = SS_;
-	_SCK = SCK_;
-	_MISO = MISO_;
-	_MOSI = MOSI_;
-	
-	byte MOSIport = digitalPinToPort(_MOSI);
-	byte SSport = digitalPinToPort(_SS);
-	byte SCKport = digitalPinToPort(_SCK);
-	byte MISOport = digitalPinToPort(_MISO);
-		
-	if ((MOSIport == NOT_A_PIN) ||
-		(  SSport == NOT_A_PIN) ||
-		( SCKport == NOT_A_PIN) ||
-		(MISOport == NOT_A_PIN) ){
-		end();
-	} else {
+void SoftSPIClass::begin(){
+	//_SS = SS_;
+	//_SCK = SCK_;
+	//_MISO = MISO_;
+	//_MOSI = MOSI_;
+	//
+	//byte MOSIport = digitalPinToPort(_MOSI);
+	//byte SSport = digitalPinToPort(_SS);
+	//byte SCKport = digitalPinToPort(_SCK);
+	//byte MISOport = digitalPinToPort(_MISO);
+	//	
+	//if ((MOSIport == NOT_A_PIN) ||
+	//	(  SSport == NOT_A_PIN) ||
+	//	( SCKport == NOT_A_PIN) ||
+	//	(MISOport == NOT_A_PIN) ){
+	//	end();
+	//} else {
 		_running = true;
-		pinMode(_MOSI, OUTPUT);
-		pinMode(_MISO, INPUT);
-		pinMode(_SCK, OUTPUT);
-		pinMode(_SS, OUTPUT);
-		_MOSI_PORT = portOutputRegister(MOSIport);
-		_MOSI_HIGH = digitalPinToBitMask(_MOSI);
-		_MOSI_LOW = ~_MOSI_HIGH;
-		_SCK_PORT = portOutputRegister(SCKport);
-		_SCK_HIGH = digitalPinToBitMask(_SCK);
-		_SCK_LOW = ~_SCK_HIGH;
-		_SS_PORT = portOutputRegister(SSport);
-		_SS_HIGH = digitalPinToBitMask(_SS);
-		_SS_LOW = ~_SS_HIGH;
-		_MISO_PIN = portInputRegister(MISOport);
-		_MISO_MASK = digitalPinToBitMask(_MISO);
-		*_SS_PORT |= _SS_HIGH;
-		*_SCK_PORT &= _SCK_LOW;
-		*_MOSI_PORT &= _MOSI_LOW;
+		SET_OUTPUT(P_MOSI); // pinMode(_MOSI, OUTPUT);
+		SET_OUTPUT(P_MISO); // pinMode(_MISO, INPUT);
+		SET_OUTPUT(P_SCK ); // pinMode(_SCK, OUTPUT);
+		SET_OUTPUT(MCP2515_CS); // pinMode(_SS, OUTPUT);
+		// _MOSI_PORT = portOutputRegister(MOSIport);
+		// _MOSI_HIGH = digitalPinToBitMask(_MOSI);
+		// _MOSI_LOW = ~_MOSI_HIGH;
+		// _SCK_PORT = portOutputRegister(SCKport);
+		// _SCK_HIGH = digitalPinToBitMask(_SCK);
+		// _SCK_LOW = ~_SCK_HIGH;
+		// _SS_PORT = portOutputRegister(SSport);
+		// _SS_HIGH = digitalPinToBitMask(_SS);
+		// _SS_LOW = ~_SS_HIGH;
+		// _MISO_PIN = portInputRegister(MISOport);
+		// _MISO_MASK = digitalPinToBitMask(_MISO);
+		SET(MCP2515_CS);// *_SS_PORT |= _SS_HIGH;
+		RESET(P_SCK);// RESET(P_SCK);
+		RESET(P_MOSI);// RESET(P_MOSI);
 		
-	}
+	//}
 }
 
 byte SoftSPIClass::transferMode0(byte _data){
 	byte _newData = 0;
 	for (byte i = 0;i < 8; i++){
 		if(_data & 0x80){
-			*_MOSI_PORT |= _MOSI_HIGH;
+			SET(P_MOSI);
 		} else {
-			*_MOSI_PORT &= _MOSI_LOW;
+			RESET(P_MOSI);
 		}
 		_data <<= 1;
-		*_SCK_PORT |= _SCK_HIGH;
+		SET(P_SCK);
 		_newData <<= 1;
-		_newData |= ((*_MISO_PIN & _MISO_MASK) ? 1 : 0);
-		*_SCK_PORT &= _SCK_LOW;
+		_newData |= IS_SET(P_MISO);
+		RESET(P_SCK);
 	}
 	return _newData;
 }
 byte SoftSPIClass::transferMode1(byte _data){
 	byte _newData = 0;
 	for (byte i = 0;i < 8; i++){
-		*_SCK_PORT |= _SCK_HIGH;
+		SET(P_SCK);
 		if(_data & 0x80){
-			*_MOSI_PORT |= _MOSI_HIGH;
+			SET(P_MOSI);
 		} else {
-			*_MOSI_PORT &= _MOSI_LOW;
+			RESET(P_MOSI);
 		}
 		_data <<= 1;
-		*_SCK_PORT &= _SCK_LOW;
+		RESET(P_SCK);
 		_newData <<= 1;
-		_newData |= ((*_MISO_PIN & _MISO_MASK) ? 1 : 0);
+		_newData |= IS_SET(P_MISO);
 	}
 	return _newData;
 }
@@ -101,31 +103,31 @@ byte SoftSPIClass::transferMode2(byte _data){
 	byte _newData = 0;
 	for (byte i = 0;i < 8; i++){
 		if(_data & 0x80){
-			*_MOSI_PORT |= _MOSI_HIGH;
+			SET(P_MOSI);
 		} else {
-			*_MOSI_PORT &= _MOSI_LOW;
+			RESET(P_MOSI);
 		}
 		_data <<= 1;
-		*_SCK_PORT &= _SCK_LOW;
+		RESET(P_SCK);
 		_newData <<= 1;
-		_newData |= ((*_MISO_PIN & _MISO_MASK) ? 1 : 0);
-		*_SCK_PORT |= _SCK_HIGH;
+		_newData |= IS_SET(P_MISO);
+		SET(P_SCK);
 	}
 	return _newData;
 }
 byte SoftSPIClass::transferMode3(byte _data){
 	byte _newData = 0;
 	for (byte i = 0;i < 8; i++){
-		*_SCK_PORT &= _SCK_LOW;
+		RESET(P_SCK);
 		if(_data & 0x80){
-			*_MOSI_PORT |= _MOSI_HIGH;
+			SET(P_MOSI);
 		} else {
-			*_MOSI_PORT &= _MOSI_LOW;
+			RESET(P_MOSI);
 		}
 		_data <<= 1;
-		*_SCK_PORT |= _SCK_HIGH;
+		SET(P_SCK);
 		_newData <<= 1;
-		_newData |= ((*_MISO_PIN & _MISO_MASK) ? 1 : 0);
+		_newData |= IS_SET(P_MISO);
 	}
 	return _newData;
 }
@@ -184,9 +186,9 @@ void SoftSPIClass::setDataMode(uint8_t mode)
 		transferType = &SoftSPIClass::transferMode0;
 	}
 	if(_mode & 0x02){
-		*_SCK_PORT |= _SCK_HIGH;
+		SET(P_SCK);
 	} else {
-		*_SCK_PORT &= _SCK_LOW;
+		RESET(P_SCK);
 	}
 }
 
