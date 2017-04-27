@@ -1,14 +1,16 @@
 #ifndef	DEFAULTS_H
 #define	DEFAULTS_H
 
-#define	P_MOSI	B,3
-#define	P_MISO	B,4
-#define	P_SCK	B,5
+#define	P_MOSI	J,1
+#define	P_MISO	J,0
+#define	P_SCK	J,2
 
-//#define	MCP2515_CS			D,3	// Rev A
-#define	MCP2515_CS			B,2 // Rev B
-#define	MCP2515_INT			D,2
-#define LED2_HIGH			B,0
-#define LED2_LOW			B,0
+#define	MCP2515_CS	H,2 
+#define	MCP2515_INT	J,6
+#define LED2_HIGH			J,7
+#define LED2_LOW			J,7
 
 #endif	// DEFAULTS_H
+
+
+
