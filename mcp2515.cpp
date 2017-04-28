@@ -136,10 +136,10 @@ uint8_t mcp2515_init(uint8_t speed)
 	// wait a little bit until the MCP2515 has restarted
 	_delay_us(10);
 
-	// load CNF1..3 Register
+	// load CNF3..1 Registers (they are in that order)
 	RESET(MCP2515_CS);
 	SPI.transfer(SPI_WRITE);
-	SPI.transfer(CNF3);
+	SPI.transfer(CNF3); // start with 3, next is 2, then 1, then CANINTE
 
 /*	SPI.transfer((1<<PHSEG21));		// Bitrate 125 kbps at 16 MHz
 	SPI.transfer((1<<BTLMODE)|(1<<PHSEG11));
@@ -150,13 +150,13 @@ uint8_t mcp2515_init(uint8_t speed)
 	SPI.transfer((1<<BTLMODE)|(1<<PHSEG11));
 	SPI.transfer((1<<BRP1)|(1<<BRP0));
 */
-	SPI.transfer((1<<PHSEG21));		// Bitrate 250 kbps at 16 MHz
-	SPI.transfer((1<<BTLMODE)|(1<<PHSEG11));
+	SPI.transfer((1<<PHSEG21)); // CNF3     // Bitrate 250 kbps at 16 MHz
+	SPI.transfer((1<<BTLMODE)|(1<<PHSEG11)); // CNF2
 	//SPI.transfer(1<<BRP0);
-    SPI.transfer(speed);
+    SPI.transfer(speed); // CNF1
 
 	// activate interrupts
-	SPI.transfer((1<<RX1IE)|(1<<RX0IE));
+	SPI.transfer((1<<RX1IE)|(1<<RX0IE)); // CANINTE
 	SET(MCP2515_CS);
 
 	// test if we could read back the value => is the chip accessible?
