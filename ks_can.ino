@@ -37,6 +37,7 @@ char buffer[456];  //Data will be temporarily stored to this buffer before being
 void setup(){
 Serial.begin(9600);
 Serial.println("CAN-Bus Demo");
+Serial.println((byte)Canbus.init(CANSPEED_500));
 
 if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the specified speed */
   {

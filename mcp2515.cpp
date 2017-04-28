@@ -134,7 +134,8 @@ uint8_t mcp2515_init(uint8_t speed)
 	SET(MCP2515_CS);
 
 	// wait a little bit until the MCP2515 has restarted
-	_delay_us(10);
+	// _delay_us(10);
+        delay(10);
 
 	// load CNF3..1 Registers (they are in that order)
 	RESET(MCP2515_CS);
@@ -160,6 +161,7 @@ uint8_t mcp2515_init(uint8_t speed)
 	SET(MCP2515_CS);
 
 	// test if we could read back the value => is the chip accessible?
+        return mcp2515_read_register(CNF1);
 	if (mcp2515_read_register(CNF1) != speed) {
 		SET(LED2_HIGH);
 
