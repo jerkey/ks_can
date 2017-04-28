@@ -22,12 +22,6 @@ SoftSPIClass::SoftSPIClass(){
         transferType = &SoftSPIClass::noTransfer;
 }
 
-// #if defined(SS) && defined(MOSI) && defined(MISO) && defined(SCK)
-void SoftSPIClass::begin(){
-	begin(); //SCK,MOSI,MISO,SS);
-}
-#endif
-
 void SoftSPIClass::writeSS(boolean state){
 	if (state) {
 		SET(MCP2515_CS);// *_SS_PORT |= _SS_HIGH;

@@ -44,11 +44,7 @@ private:
 public:
 	byte transfer(byte _data);
 	
-	// SPI Configuration methods
-	#if defined(SS) && defined(MOSI) && defined(MISO) && defined(SCK)
-	void begin(); // Default to the preset SPI pins
-	#endif
-	void begin(byte SCK_, byte MOSI_, byte MISO_, byte SS_); //No SS specified, so require pin designation
+	void begin(); // use defaults.h to set SPI pins
 	void end();
 	
 	void setBitOrder(uint8_t);
