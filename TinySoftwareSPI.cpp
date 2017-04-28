@@ -40,7 +40,7 @@ void SoftSPIClass::begin(){
 	//byte SSport = digitalPinToPort(_SS);
 	//byte SCKport = digitalPinToPort(_SCK);
 	//byte MISOport = digitalPinToPort(_MISO);
-	//	
+	//
 	//if ((MOSIport == NOT_A_PIN) ||
 	//	(  SSport == NOT_A_PIN) ||
 	//	( SCKport == NOT_A_PIN) ||
@@ -66,7 +66,7 @@ void SoftSPIClass::begin(){
 		SET(MCP2515_CS);// *_SS_PORT |= _SS_HIGH;
 		RESET(P_SCK);// RESET(P_SCK);
 		RESET(P_MOSI);// RESET(P_MOSI);
-		
+
 		_mode = SPI_MODE0;
 		transferType = &SoftSPIClass::transferMode0;
 	//}
@@ -149,7 +149,7 @@ byte SoftSPIClass::transfer(byte _data){
 	if (_bitOrder == MSBFIRST){
 	//Send data
 		_newData = (*this.*transferType)(_data);
-		SREG = oldSREG; 
+		SREG = oldSREG;
 		return _newData;
 	} else {
 		//flip the data
@@ -205,9 +205,9 @@ void SoftSPIClass::setDataMode(uint8_t mode)
 
 void SoftSPIClass::setClockDivider(uint8_t rate)
 {
-	
+
 	//does nothing as the speed cannot be changed - fixed at Fcpu/16
-	
+
 }
 
 SoftSPIClass SPI;

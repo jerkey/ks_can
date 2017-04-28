@@ -19,7 +19,7 @@ Based off of original example ecu_reader_logger by:
 Sukkin Pang
 SK Pang Electronics www.skpang.co.uk
 
-This code is beerware; if you see me (or any other SparkFun employee) 
+This code is beerware; if you see me (or any other SparkFun employee)
 at the local, and you've found our code helpful, please buy us a round!
 
 For the official license, please check out the license file included with the library.
@@ -44,9 +44,9 @@ if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the speci
   } else
   {
     Serial.println("Can't init CAN");
-  } 
-   
-  delay(1000); 
+  }
+
+  delay(1000);
 
 Serial.println("Please choose a menu option.");
 Serial.println("1.Speed");

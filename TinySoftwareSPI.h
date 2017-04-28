@@ -43,14 +43,14 @@ private:
 	byte transferMode3(byte _data);
 public:
 	byte transfer(byte _data);
-	
+
 	void begin(); // use defaults.h to set SPI pins
 	void end();
-	
+
 	void setBitOrder(uint8_t);
 	void setDataMode(uint8_t);
 	void setClockDivider(uint8_t);
-	
+
 	void writeSS(boolean state);
 private:
 	byte _rate;

@@ -32,7 +32,7 @@ class CanbusClass
 	char message_rx(unsigned char *buffer);
 	char ecu_req(unsigned char pid,  char *buffer);
 private:
-	
+
 };
 extern CanbusClass Canbus;
 //extern tCAN message;

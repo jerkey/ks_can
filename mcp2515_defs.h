@@ -17,7 +17,7 @@
 
 /** \name	Adressen der Register des MCP2515
  *
- * Die Redundanten Adressen von z.B. dem Register CANSTAT 
+ * Die Redundanten Adressen von z.B. dem Register CANSTAT
  * (0x0E, 0x1E, 0x2E, ...) wurden dabei nicht mit aufgelistet.
  */
 /*@{*/
