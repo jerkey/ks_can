@@ -46,28 +46,13 @@
 #include "TinySoftwareSPI.h"
 
 // -------------------------------------------------------------------------
-// Schreibt/liest ein Byte ueber den Hardware SPI Bus
-
-uint8_t spi_putc( uint8_t data )
-{
-	// put byte in send-buffer
-	SPDR = data;
-
-	// wait until byte was send
-	while( !( SPSR & (1<<SPIF) ) )
-		;
-
-	return SPDR;
-}
-
-// -------------------------------------------------------------------------
 void mcp2515_write_register( uint8_t adress, uint8_t data )
 {
 	RESET(MCP2515_CS);
 
-	spi_putc(SPI_WRITE);
-	spi_putc(adress);
-	spi_putc(data);
+	SPI.transfer(SPI_WRITE);
+	SPI.transfer(adress);
+	SPI.transfer(data);
 
 	SET(MCP2515_CS);
 }
@@ -79,10 +64,10 @@ uint8_t mcp2515_read_register(uint8_t adress)
 
 	RESET(MCP2515_CS);
 
-	spi_putc(SPI_READ);
-	spi_putc(adress);
+	SPI.transfer(SPI_READ);
+	SPI.transfer(adress);
 
-	data = spi_putc(0xff);
+	data = SPI.transfer(0xff);
 
 	SET(MCP2515_CS);
 
@@ -94,10 +79,10 @@ void mcp2515_bit_modify(uint8_t adress, uint8_t mask, uint8_t data)
 {
 	RESET(MCP2515_CS);
 
-	spi_putc(SPI_BIT_MODIFY);
-	spi_putc(adress);
-	spi_putc(mask);
-	spi_putc(data);
+	SPI.transfer(SPI_BIT_MODIFY);
+	SPI.transfer(adress);
+	SPI.transfer(mask);
+	SPI.transfer(data);
 
 	SET(MCP2515_CS);
 }
@@ -109,8 +94,8 @@ uint8_t mcp2515_read_status(uint8_t type)
 
 	RESET(MCP2515_CS);
 
-	spi_putc(type);
-	data = spi_putc(0xff);
+	SPI.transfer(type);
+	data = SPI.transfer(0xff);
 
 	SET(MCP2515_CS);
 
@@ -145,7 +130,7 @@ uint8_t mcp2515_init(uint8_t speed)
 	// reset MCP2515 by software reset.
 	// After this he is in configuration mode.
 	RESET(MCP2515_CS);
-	spi_putc(SPI_RESET);
+	SPI.transfer(SPI_RESET);
 	SET(MCP2515_CS);
 
 	// wait a little bit until the MCP2515 has restarted
@@ -153,25 +138,25 @@ uint8_t mcp2515_init(uint8_t speed)
 
 	// load CNF1..3 Register
 	RESET(MCP2515_CS);
-	spi_putc(SPI_WRITE);
-	spi_putc(CNF3);
+	SPI.transfer(SPI_WRITE);
+	SPI.transfer(CNF3);
 
-/*	spi_putc((1<<PHSEG21));		// Bitrate 125 kbps at 16 MHz
-	spi_putc((1<<BTLMODE)|(1<<PHSEG11));
-	spi_putc((1<<BRP2)|(1<<BRP1)|(1<<BRP0));
+/*	SPI.transfer((1<<PHSEG21));		// Bitrate 125 kbps at 16 MHz
+	SPI.transfer((1<<BTLMODE)|(1<<PHSEG11));
+	SPI.transfer((1<<BRP2)|(1<<BRP1)|(1<<BRP0));
 */
 /*
-	spi_putc((1<<PHSEG21));		// Bitrate 250 kbps at 16 MHz
-	spi_putc((1<<BTLMODE)|(1<<PHSEG11));
-	spi_putc((1<<BRP1)|(1<<BRP0));
+	SPI.transfer((1<<PHSEG21));		// Bitrate 250 kbps at 16 MHz
+	SPI.transfer((1<<BTLMODE)|(1<<PHSEG11));
+	SPI.transfer((1<<BRP1)|(1<<BRP0));
 */
-	spi_putc((1<<PHSEG21));		// Bitrate 250 kbps at 16 MHz
-	spi_putc((1<<BTLMODE)|(1<<PHSEG11));
-	//spi_putc(1<<BRP0);
-    spi_putc(speed);
+	SPI.transfer((1<<PHSEG21));		// Bitrate 250 kbps at 16 MHz
+	SPI.transfer((1<<BTLMODE)|(1<<PHSEG11));
+	//SPI.transfer(1<<BRP0);
+    SPI.transfer(speed);
 
 	// activate interrupts
-	spi_putc((1<<RX1IE)|(1<<RX0IE));
+	SPI.transfer((1<<RX1IE)|(1<<RX0IE));
 	SET(MCP2515_CS);
 
 	// test if we could read back the value => is the chip accessible?
@@ -240,24 +225,24 @@ uint8_t mcp2515_get_message(tCAN *message)
 	}
 
 	RESET(MCP2515_CS);
-	spi_putc(addr);
+	SPI.transfer(addr);
 
 	// read id
-	message->id  = (uint16_t) spi_putc(0xff) << 3;
-	message->id |=            spi_putc(0xff) >> 5;
+	message->id  = (uint16_t) SPI.transfer(0xff) << 3;
+	message->id |=            SPI.transfer(0xff) >> 5;
 
-	spi_putc(0xff);
-	spi_putc(0xff);
+	SPI.transfer(0xff);
+	SPI.transfer(0xff);
 
 	// read DLC
-	uint8_t length = spi_putc(0xff) & 0x0f;
+	uint8_t length = SPI.transfer(0xff) & 0x0f;
 
 	message->header.length = length;
 	message->header.rtr = (bit_is_set(status, 3)) ? 1 : 0;
 
 	// read data
 	for (t=0;t<length;t++) {
-		message->data[t] = spi_putc(0xff);
+		message->data[t] = SPI.transfer(0xff);
 	}
 	SET(MCP2515_CS);
 
@@ -302,27 +287,27 @@ uint8_t mcp2515_send_message(tCAN *message)
 	}
 
 	RESET(MCP2515_CS);
-	spi_putc(SPI_WRITE_TX | address);
+	SPI.transfer(SPI_WRITE_TX | address);
 
-	spi_putc(message->id >> 3);
-    spi_putc(message->id << 5);
+	SPI.transfer(message->id >> 3);
+    SPI.transfer(message->id << 5);
 
-	spi_putc(0);
-	spi_putc(0);
+	SPI.transfer(0);
+	SPI.transfer(0);
 
 	uint8_t length = message->header.length & 0x0f;
 
 	if (message->header.rtr) {
 		// a rtr-frame has a length, but contains no data
-		spi_putc((1<<RTR) | length);
+		SPI.transfer((1<<RTR) | length);
 	}
 	else {
 		// set message length
-		spi_putc(length);
+		SPI.transfer(length);
 
 		// data
 		for (t=0;t<length;t++) {
-			spi_putc(message->data[t]);
+			SPI.transfer(message->data[t]);
 		}
 	}
 	SET(MCP2515_CS);
@@ -332,7 +317,7 @@ uint8_t mcp2515_send_message(tCAN *message)
 	// send message
 	RESET(MCP2515_CS);
 	address = (address == 0) ? 1 : address;
-	spi_putc(SPI_RTS | address);
+	SPI.transfer(SPI_RTS | address);
 	SET(MCP2515_CS);
 
 	return address;
