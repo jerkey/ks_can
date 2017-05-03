@@ -49,7 +49,7 @@ void SoftSPIClass::begin(){
 	//} else {
 		_running = true;
 		SET_OUTPUT(P_MOSI); // pinMode(_MOSI, OUTPUT);
-		SET_OUTPUT(P_MISO); // pinMode(_MISO, INPUT);
+		// pinMode(_MISO, INPUT);
 		SET_OUTPUT(P_SCK ); // pinMode(_SCK, OUTPUT);
 		SET_OUTPUT(MCP2515_CS); // pinMode(_SS, OUTPUT);
 		// _MOSI_PORT = portOutputRegister(MOSIport);
