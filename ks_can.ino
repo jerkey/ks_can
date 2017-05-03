@@ -1,43 +1,25 @@
-/****************************************************************************
-CAN-Bus Demo
-
-Toni Klopfenstein @ SparkFun Electronics
-September 2015
-https://github.com/sparkfun/CAN-Bus_Shield
-
-This example sketch works with the CAN-Bus shield from SparkFun Electronics.
-
-It enables the MCP2515 CAN controller and MCP2551 CAN-Bus driver, and demos
-using the chips to communicate with a CAN-Bus.
-
-Resources:
-
-Development environment specifics:
-Developed for Arduino 1.6.5
-
-Based off of original example ecu_reader_logger by:
-Sukkin Pang
-SK Pang Electronics www.skpang.co.uk
-
-This code is beerware; if you see me (or any other SparkFun employee)
-at the local, and you've found our code helpful, please buy us a round!
-
-For the official license, please check out the license file included with the library.
-
-Distributed as-is; no warranty is given.
-*************************************************************************/
-
+// fuses must have lfuse bit 6 low, aka cleared, aka programmed, to enable CKOUT so that PE7 sends system clock to MCP2515 OSC1 input
+// E:F5, H:DA, L:BF
 #include "Canbus.h"
+#include "mcp2515.h"
 char UserInput;
 int data;
-char buffer[456];  //Data will be temporarily stored to this buffer before being written to the file
+byte buffer[16];
+uint16_t cellVoltages[32];
+uint32_t packVoltage = 0;
+uint16_t id;
+uint8_t length;
+uint16_t x188count=0;
+uint16_t x408count=0;
+unsigned long lastCellPrint = 0; // last time we printed cell voltages
 
 //********************************Setup Loop*********************************//
 
 void setup(){
-Serial.begin(9600);
+Serial.begin(230400);
 Serial.println("CAN-Bus Demo");
 Serial.println((byte)Canbus.init(CANSPEED_500));
+for (int i=0; i<32; i++) cellVoltages[i] = 0; // zero battery voltages
 
 if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the specified speed */
   {
@@ -46,76 +28,67 @@ if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the speci
   {
     Serial.println("Can't init CAN");
   }
-
-  delay(1000);
-
-Serial.println("Please choose a menu option.");
-Serial.println("1.Speed");
-Serial.println("2.RPM");
-Serial.println("3.Throttle");
-Serial.println("4.Coolant Temperature");
-Serial.println("5.O2 Voltage");
-Serial.println("6.MAF Sensor");
-
+  mcp2515_bit_modify(CANCTRL, (1<<REQOP2)|(1<<REQOP1)|(1<<REQOP0), 0); // i guess this tells the chip to receive everything?
 }
-
-
-
-//********************************Main Loop*********************************//
 
 void loop(){
-
-while(Serial.available()){
-   UserInput = Serial.read();
-
-if (UserInput=='1'){
- Canbus.ecu_req(VEHICLE_SPEED, buffer);
- Serial.print("Vehicle Speed: ");
- Serial.println(buffer);
- delay(500);
-}
-else if (UserInput=='2'){
- Canbus.ecu_req(ENGINE_RPM, buffer);
- Serial.print("Engine RPM: ");
- Serial.println(buffer);
- delay(500);
-
-}
-else if (UserInput=='3'){
- Canbus.ecu_req(THROTTLE, buffer);
- Serial.print("Throttle: ");
- Serial.println(buffer);
- delay(500);
-
-}
-else if (UserInput=='4'){
- Canbus.ecu_req(ENGINE_COOLANT_TEMP, buffer);
- Serial.print("Engine Coolant Temp: ");
- Serial.println(buffer);
- delay(500);
-
-}
-else if (UserInput=='5'){
- Canbus.ecu_req(O2_VOLTAGE, buffer);
- Serial.print("O2 Voltage: ");
- Serial.println(buffer);
- delay(500);
-
-}
-else if (UserInput=='6'){
- Canbus.ecu_req(MAF_SENSOR, buffer);
- Serial.print("MAF Sensor: ");
- Serial.println(buffer);
- delay(500);
-
-}
-else
-{
-  Serial.println(UserInput);
-  Serial.println("Not a valid input.");
-  Serial.println("Please enter a valid option.");
-}
-
-}
+  id=0;
+  Canbus.message_rx(buffer,&id,&length);
+  if (id == 0x0188) { if (x188count > 6) { x188count=0;
+      Serial.print("SOC:");
+      Serial.print(buffer[0]);
+      Serial.print("  status:");
+      Serial.print(buffer[1],BIN);
+      Serial.print(buffer[2],BIN);
+      Serial.print("  charge cycles:");
+      Serial.print(buffer[3]<<8+buffer[4]);
+      Serial.print("  balance mV:");
+      Serial.print(buffer[5]<<8+buffer[6]);
+      Serial.print("  number of bricks:");
+      Serial.println(buffer[7]);
+    }
+  } else if (id == 0x0408) { if (x408count > 4) { x408count=0;
+      Serial.print("Highest FET temp C:");
+      Serial.print(buffer[0]);
+      Serial.print("  Highest Pack Temp C:");
+      Serial.print(buffer[1]);
+      Serial.print("  Lowest Pack Temp C:");
+      Serial.print(buffer[2]);
+      Serial.print("  Pack Discharge Current Amps:");
+      Serial.print(buffer[3]<<8+buffer[4]);
+      Serial.print("  Pack Capacity Remaining AH:");
+      Serial.println(buffer[5]<<8+buffer[6]);
+    }
+  } else if (id == 0x388 && buffer[0]<32) {
+    printBuf();
+    cellVoltages[buffer[0]] = (buffer[2] << 8) + buffer[1];
+    packVoltage = (buffer[5] << 16) + (buffer[4] << 8) + buffer[3];
+    if (millis() - lastCellPrint > 1000) { // time to print cell voltages
+      lastCellPrint = millis();
+      Serial.print("cell voltages: ");
+      for (int i=0; i<28; i++) {
+        Serial.print((float)cellVoltages[i]/1000,1);
+        Serial.print(" ");
+      }
+      Serial.print("  Pack voltage: ");
+      //Serial.println((float)packVoltage/12800,2);
+      Serial.println(packVoltage);
+    }
+  } else if (id == 0x488) {// Serial.print("488 ");printBuf();
+  } else if (id == 0x508) {// Serial.print("508 ");printBuf();
+  } else if (id == 0x308) {// Serial.print("308 ");printBuf();
+  } else if (id == 0x288) {// Serial.print("288 ");printBuf();
+  } else if (id) {
+    Serial.print(" 0x");
+    Serial.print(id,HEX);
+  }
 }
 
+void printBuf() {
+  for (int i=0; i < length; i++) {
+    if (buffer[i] < 16) Serial.print("0");
+    Serial.print(buffer[i],HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
