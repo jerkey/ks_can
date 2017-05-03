@@ -29,7 +29,7 @@ class CanbusClass
 	CanbusClass();
     char init(unsigned char);
 	char message_tx(void);
-	char message_rx(unsigned char *buffer);
+	char message_rx(unsigned char *buffer, uint16_t *id, uint8_t *length);
 	char ecu_req(unsigned char pid,  char *buffer);
 private:
 

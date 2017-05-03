@@ -31,11 +31,13 @@ CanbusClass::CanbusClass() {
 
 
 }
-char CanbusClass::message_rx(unsigned char *buffer) {
+char CanbusClass::message_rx(unsigned char *buffer, uint16_t *id, uint8_t *length) {
     tCAN message;
     if (mcp2515_check_message()) { // read the message from the buffer of the MCP2515
       if (mcp2515_get_message(&message)) {
       //  print_can_message(&message); PRINT("\n");
+        *id = message.id;
+        *length = message.header.length;
         buffer[0] = message.data[0];
         buffer[1] = message.data[1];
         buffer[2] = message.data[2];
@@ -50,10 +52,9 @@ char CanbusClass::message_rx(unsigned char *buffer) {
 //        buffer[] = message[];
       }
       else {
-      //  PRINT("Cannot read a message\n\n");
+      Serial.println("Cannot read message");
       }
     }
-
 }
 
 char CanbusClass::message_tx(void) {
