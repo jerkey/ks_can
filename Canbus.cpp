@@ -55,18 +55,18 @@ char CanbusClass::message_rx(unsigned char *buffer, uint16_t *id, uint8_t *lengt
     }
 }
 
-char CanbusClass::message_tx(void) {
+char CanbusClass::zero_control(byte dest, byte control0, byte control1) {
   tCAN message;
 
 
   // einige Testwerte
-  message.id = 0x7DF;
+  message.id = 0x506;
   message.header.rtr = 0;
-  message.header.length = 8;
-  message.data[0] = 0x02;
-  message.data[1] = 0x01;
-  message.data[2] = 0x05;
-  message.data[3] = 0x00;
+  message.header.length = 4;
+  message.data[0] = dest;
+  message.data[1] = control0;
+  message.data[2] = control1;
+  message.data[3] = 0x01; // number of modules in system
   message.data[4] = 0x00;
   message.data[5] = 0x00;
   message.data[6] = 0x00;
@@ -75,7 +75,7 @@ char CanbusClass::message_tx(void) {
   if (mcp2515_send_message(&message)) {
     return 1;
   } else {
-    Serial.println("Error: could not read the message");
+    //Serial.println("Error: could not send the message");
     return 0;
   }
 return 1;
