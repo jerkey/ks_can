@@ -11,6 +11,7 @@ uint16_t id;
 uint8_t length;
 uint16_t x188count=0;
 uint16_t x408count=0;
+uint16_t x308count=0;
 unsigned long lastCellPrint = 0; // last time we printed cell voltages
 
 //********************************Setup Loop*********************************//
@@ -85,7 +86,16 @@ void loop(){
     }
   } else if (id == 0x488) {// Serial.print("488 ");printBuf();
   } else if (id == 0x508) {// Serial.print("508 ");printBuf();
-  } else if (id == 0x308) {// Serial.print("308 ");printBuf();
+  } else if (id == 0x308) { if (x308count++ > 4) { x308count=0;
+      Serial.print("BMS firmware Revision: ");
+      Serial.print(buffer[0]);
+      Serial.print("  BMS Board Revision: ");
+      Serial.print(buffer[1]);
+      Serial.print("  Run Time Seconds:");
+      Serial.print(buffer[3]<<8+buffer[4]);
+      Serial.print("  Total Energy Used WH:");
+      Serial.println(buffer[5]<<8+buffer[6]);
+    }
   } else if (id == 0x288) {// Serial.print("288 ");printBuf();
   } else if (id) {
     Serial.print(" 0x");
