@@ -18,17 +18,14 @@ unsigned long lastCellPrint = 0; // last time we printed cell voltages
 void setup(){
 Serial.begin(230400);
 Serial.println("CAN-Bus Demo");
-Serial.println((byte)Canbus.init(CANSPEED_500));
 for (int i=0; i<32; i++) cellVoltages[i] = 0; // zero battery voltages
 
 if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the specified speed */
   {
     Serial.println("CAN Init ok");
-  } else
-  {
+  } else {
     Serial.println("Can't init CAN");
   }
-  mcp2515_bit_modify(CANCTRL, (1<<REQOP2)|(1<<REQOP1)|(1<<REQOP0), 0); // i guess this tells the chip to receive everything?
 }
 
 void loop(){
