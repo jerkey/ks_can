@@ -36,6 +36,7 @@ void loop(){
       Serial.print(buffer[0]);
       Serial.print("  status:");
       Serial.print(buffer[1],BIN);
+      Serial.print(".");
       Serial.print(buffer[2],BIN);
       Serial.print("  charge cycles:");
       Serial.print(buffer[3]<<8+buffer[4]);
@@ -64,12 +65,23 @@ void loop(){
       lastCellPrint = millis();
       Serial.print("cell voltages: ");
       for (int i=0; i<28; i++) {
+        if (cellVoltages[i]>0) {
         Serial.print((float)cellVoltages[i]/1000,1);
         Serial.print(" ");
+        } else {
+          Serial.print("-.- ");
+        }
       }
       Serial.print("  Pack voltage: ");
       //Serial.println((float)packVoltage/12800,2);
       Serial.println(packVoltage);
+      Serial.print("cell indexes:   ");
+      for (int i=0; i<28; i++) {
+        if (i<10) Serial.print(" ");
+        Serial.print(i);
+        Serial.print("  ");
+      }
+      Serial.println();
     }
   } else if (id == 0x488) {// Serial.print("488 ");printBuf();
   } else if (id == 0x508) {// Serial.print("508 ");printBuf();
