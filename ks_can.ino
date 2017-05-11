@@ -101,6 +101,13 @@ void loop(){
     Serial.print(" 0x");
     Serial.print(id,HEX);
   }
+  byte command = 1 << ((millis() % 8000) / 1000);
+  //Canbus.zero_control(0,command,0);
+  //Canbus.zero_control(0,0,command);
+  //Canbus.zero_control(1,command,0);
+  //Canbus.zero_control(1,0,command);
+  Canbus.zero_control(8,command,0);
+  Canbus.zero_control(8,0,command);
 }
 
 void printBuf() {
