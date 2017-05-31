@@ -58,31 +58,29 @@ void loop(){
       Serial.print("  Pack Capacity Remaining AH:");
       Serial.println(buffer[5]<<8+buffer[6]);
     }
-  } else if (id == 0x388 && buffer[0]<32) {
-    printBuf();
+  } else if (id == 0x388 && buffer[0]<32) { // cell voltages won't fully populate unless 0x506 traffic is happening on the canbus
     cellVoltages[buffer[0]] = (buffer[2] << 8) + buffer[1];
-    packVoltage = (buffer[5] << 16) + (buffer[4] << 8) + buffer[3];
+    packVoltage = ((uint32_t)buffer[5] << 16) + ((uint16_t)buffer[4] << 8) + buffer[3];
     if (millis() - lastCellPrint > 1000) { // time to print cell voltages
       lastCellPrint = millis();
       Serial.print("cell voltages: ");
       for (int i=0; i<28; i++) {
         if (cellVoltages[i]>0) {
-        Serial.print((float)cellVoltages[i]/1000,1);
+        Serial.print((float)cellVoltages[i]/1000,2);
         Serial.print(" ");
         } else {
           Serial.print("-.- ");
         }
       }
       Serial.print("  Pack voltage: ");
-      //Serial.println((float)packVoltage/12800,2);
-      Serial.println(packVoltage);
-      Serial.print("cell indexes:   ");
-      for (int i=0; i<28; i++) {
-        if (i<10) Serial.print(" ");
-        Serial.print(i);
-        Serial.print("  ");
-      }
-      Serial.println();
+      Serial.println((float)packVoltage/1000,2);
+      //Serial.print("cell indexes:   ");
+      //for (int i=0; i<28; i++) {
+      //  if (i<10) Serial.print(" ");
+      //  Serial.print(i);
+      //  Serial.print("  ");
+      //}
+      //Serial.println();
     }
   } else if (id == 0x488) {// Serial.print("488 ");printBuf();
   } else if (id == 0x508) {// Serial.print("508 ");printBuf();
