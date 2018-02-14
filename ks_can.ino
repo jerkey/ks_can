@@ -39,13 +39,13 @@ void loop(){
       Serial.print(".");
       Serial.print(buffer[1],BIN);
       Serial.print("  charge cycles:");
-      Serial.print(buffer[3]<<8+buffer[4]);
+      Serial.print(buffer[4]*256+buffer[3]);
       Serial.print("  balance mV:");
-      Serial.print(buffer[5]<<8+buffer[6]);
+      Serial.print(buffer[6]*256+buffer[5]);
       Serial.print("  number of bricks:");
       Serial.println(buffer[7]);
     }
-  } else if (id == 0x0408) { if (x408count > 4) { x408count=0;
+  } else if (id == 0x0408) { if (x408count++ > 4) { x408count=0;
       Serial.print("Highest FET temp C:");
       Serial.print(buffer[0]);
       Serial.print("  Highest Pack Temp C:");
@@ -53,9 +53,9 @@ void loop(){
       Serial.print("  Lowest Pack Temp C:");
       Serial.print(buffer[2]);
       Serial.print("  Pack Discharge Current Amps:");
-      Serial.print(buffer[3]<<8+buffer[4]);
+      Serial.print(buffer[4]*256+buffer[3]);
       Serial.print("  Pack Capacity Remaining AH:");
-      Serial.println(buffer[5]<<8+buffer[6]);
+      Serial.println(buffer[6]*256+buffer[5]);
     }
   } else if (id == 0x388 && buffer[0]<32) { // cell voltages won't fully populate unless 0x506 traffic is happening on the canbus
     cellVoltages[buffer[0]] = (buffer[2] << 8) + buffer[1];
@@ -82,9 +82,9 @@ void loop(){
       Serial.print("  BMS Board Revision: ");
       Serial.print(buffer[1]);
       Serial.print("  Run Time Seconds:");
-      Serial.print(buffer[3]<<8+buffer[4]);
+      Serial.print(buffer[3]*256+buffer[2]);
       Serial.print("  Total Energy Used WH:");
-      Serial.println(buffer[5]<<8+buffer[6]);
+      Serial.println(buffer[4]+buffer[5]*256+buffer[6]*65536+buffer[7]*16777216);
     }
   } else if (id == 0x288) {// Serial.print("288 ");printBuf();
   } else if (id) {
