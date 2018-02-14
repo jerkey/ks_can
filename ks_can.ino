@@ -3,8 +3,6 @@
 #include "Canbus.h"
 #include "mcp2515.h"
 #include "zero.h"
-char UserInput;
-int data;
 byte buffer[16];
 uint16_t command;
 uint8_t num_modules;
@@ -17,15 +15,12 @@ uint16_t x408count=0;
 uint16_t x308count=0;
 unsigned long lastCellPrint = 0; // last time we printed cell voltages
 
-//********************************Setup Loop*********************************//
-
 void setup(){
 Serial.begin(230400);
 Serial.println("CAN-Bus Demo");
 for (int i=0; i<32; i++) cellVoltages[i] = 0; // zero battery voltages
 
-if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the specified speed */
-  {
+if(Canbus.init(CANSPEED_500)) {
     Serial.println("CAN Init ok");
   } else {
     Serial.println("Can't init CAN");
@@ -33,7 +28,7 @@ if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the speci
 }
 
 void loop(){
-  send506();
+  send506(); // tell the battery what we want
   id=0;
   Canbus.message_rx(buffer,&id,&length);
   if (id == 0x0188) { if (x188count++ > 6) { x188count=0;
@@ -73,18 +68,11 @@ void loop(){
         Serial.print((float)cellVoltages[i]/1000,2);
         Serial.print(" ");
         } else {
-          Serial.print("-.- ");
+          Serial.print("-.-- ");
         }
       }
       Serial.print("  Pack voltage: ");
       Serial.println((float)packVoltage/1000,2);
-      //Serial.print("cell indexes:   ");
-      //for (int i=0; i<28; i++) {
-      //  if (i<10) Serial.print(" ");
-      //  Serial.print(i);
-      //  Serial.print("  ");
-      //}
-      //Serial.println();
     }
   } else if (id == 0x488) {// Serial.print("488 ");printBuf();
   } else if (id == 0x508) {// Serial.print("508 ");printBuf();
