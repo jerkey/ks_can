@@ -2,10 +2,12 @@
 // E:F5, H:DA, L:BF
 #include "Canbus.h"
 #include "mcp2515.h"
+#include "zero.h"
 char UserInput;
 int data;
 byte buffer[16];
-byte command;
+uint16_t command;
+uint8_t num_modules;
 uint16_t cellVoltages[32];
 uint32_t packVoltage = 0;
 uint16_t id;
@@ -28,32 +30,19 @@ if(Canbus.init(CANSPEED_500))  /* Initialise MCP2515 CAN controller at the speci
   } else {
     Serial.println("Can't init CAN");
   }
-  command = 0x10; // disconnect
-  Canbus.zero_control(0,command,0);
-  Canbus.zero_control(0,0,command);
-  Canbus.zero_control(1,command,0);
-  Canbus.zero_control(1,0,command);
-  Canbus.zero_control(8,command,0);
-  Canbus.zero_control(8,0,command);
-  command = 8; // open
-  Canbus.zero_control(0,command,0);
-  Canbus.zero_control(0,0,command);
-  Canbus.zero_control(1,command,0);
-  Canbus.zero_control(1,0,command);
-  Canbus.zero_control(8,command,0);
-  Canbus.zero_control(8,0,command);
 }
 
 void loop(){
+  send506();
   id=0;
   Canbus.message_rx(buffer,&id,&length);
   if (id == 0x0188) { if (x188count++ > 6) { x188count=0;
       Serial.print("SOC:");
       Serial.print(buffer[0]);
       Serial.print("  status:");
-      Serial.print(buffer[1],BIN);
+      Serial.print(buffer[2],BIN); // least significant byte first
       Serial.print(".");
-      Serial.print(buffer[2],BIN);
+      Serial.print(buffer[1],BIN);
       Serial.print("  charge cycles:");
       Serial.print(buffer[3]<<8+buffer[4]);
       Serial.print("  balance mV:");
@@ -114,20 +103,20 @@ void loop(){
     Serial.print(" 0x");
     Serial.print(id,HEX);
   }
-  command = 4; // close
-  Canbus.zero_control(0,command,0);
-  Canbus.zero_control(0,0,command);
-  Canbus.zero_control(1,command,0);
-  Canbus.zero_control(1,0,command);
-  Canbus.zero_control(8,command,0);
-  Canbus.zero_control(8,0,command);
-  command = millis() % 256; // 0x20; // connect
-  Canbus.zero_control(0,command,0);
-  Canbus.zero_control(0,0,command);
-  Canbus.zero_control(1,command,0);
-  Canbus.zero_control(1,0,command);
-  Canbus.zero_control(8,command,0);
-  Canbus.zero_control(8,0,command);
+}
+
+void send506() {
+  command = ZERO_BMS_CONTROL_CODE_NOT_SAFETY_OVERRIDE + ZERO_BMS_CONTROL_CODE_DISCONNECT_MODULE + ZERO_BMS_CONTROL_CODE_OPEN_CONTACTOR;
+  num_modules = 0;
+  if (millis() > 10000) {
+    command += ZERO_BMS_CONTROL_CODE_CHARGER_CONNECTED;
+  }
+  if (millis() > 15000) {
+    num_modules = 1;
+    command = ZERO_BMS_CONTROL_CODE_NOT_SAFETY_OVERRIDE + ZERO_BMS_CONTROL_CODE_CHARGER_CONNECTED
+            + ZERO_BMS_CONTROL_CODE_CONNECT_MODULE      + ZERO_BMS_CONTROL_CODE_CLOSE_FET;
+  }
+  Canbus.zero_control(8,command,num_modules);
 }
 
 void printBuf() {
