@@ -55,19 +55,19 @@ char CanbusClass::message_rx(unsigned char *buffer, uint16_t *id, uint8_t *lengt
     }
 }
 
-char CanbusClass::zero_control(byte dest, byte control0, byte control1) {
+char CanbusClass::zero_control(byte dest, uint16_t control, byte num_modules) {
   tCAN message;
 
 
   // einige Testwerte
   message.id = 0x506;
   message.header.rtr = 0;
-  message.header.length = 4;
+  message.header.length = 8;
   message.data[0] = dest;
-  message.data[1] = control0;
-  message.data[2] = control1;
-  message.data[3] = 0x01; // number of modules in system
-  message.data[4] = 0x00;
+  message.data[1] = control & 255;
+  message.data[2] = control >> 8;
+  message.data[3] = num_modules;
+  message.data[4] = 0x10;
   message.data[5] = 0x00;
   message.data[6] = 0x00;
   message.data[7] = 0x00;
