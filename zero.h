@@ -17,20 +17,20 @@
 #define ZERO_BMS_CONTROL_CODE_SAFETY_OVERRIDE           0x8000
 
 void printBMSStatusMessages(uint16_t status) {
-  if (status & 0x0001) Serial.println("ZERO_BMS_STATUS_CODE_CHARGER");
-  if (status & 0x0002) Serial.println("ZERO_BMS_STATUS_CODE_BATT_TEMP_TOO_HIGH");
-  if (status & 0x0004) Serial.println("ZERO_BMS_STATUS_CODE_BATT_TEMP_HIGH");
-  if (status & 0x0008) Serial.println("ZERO_BMS_STATUS_CODE_BATT_TEMP_TOO_LOW");
-  if (status & 0x0010) Serial.println("ZERO_BMS_STATUS_CODE_LOW_BATT");
-  if (status & 0x0020) Serial.println("ZERO_BMS_STATUS_CODE_CRITICAL_BATT");
-  if (status & 0x0040) Serial.println("ZERO_BMS_STATUS_CODE_IMBALANCE");
-  if (status & 0x0080) Serial.println("ZERO_BMS_STATUS_CODE_INTERNAL_FAULT");
-  if (status & 0x0100) Serial.println("ZERO_BMS_STATUS_CODE_FETS_CLOSED");
-  if (status & 0x0200) Serial.println("ZERO_BMS_STATUS_CODE_CONTACTOR_CLOSED");
-  if (status & 0x0400) Serial.println("ZERO_CAN_BMS_STATUS_CODE_ISOLATION_FAULT");
-  if (status & 0x0800) Serial.println("ZERO_CAN_BMS_STATUS_CODE_CELL_TOO_HIGH");
-  if (status & 0x1000) Serial.println("ZERO_CAN_BMS_STATUS_CODE_CELL_TOO_LOW");
-  if (status & 0x2000) Serial.println("ZERO_CAN_BMS_STATUS_CODE_CHARGE_HALT");
-  if (status & 0x4000) Serial.println("ZERO_CAN_BMS_STATUS_CODE_FULL");
-  if (status & 0x8000) Serial.println("ZERO_CAN_BMS_STATUS_CODE_INTERNAL_DISABLE");
+  if (status & 0x0001) Serial.print("  CHARGER");
+  if (status & 0x0002) Serial.print("  BATT_TEMP_TOO_HIGH");
+  if (status & 0x0004) Serial.print("  BATT_TEMP_HIGH");
+  if (status & 0x0008) Serial.print("  BATT_TEMP_TOO_LOW");
+  if (status & 0x0010) Serial.print("  LOW_BATT");
+  if (status & 0x0020) Serial.print("  CRITICAL_BATT");
+  if (status & 0x0040) Serial.print("  IMBALANCE");
+  if (status & 0x0080) Serial.print("  INTERNAL_FAULT");
+  if (status & 0x0100) Serial.print("  FETS_CLOSED");
+  if (status & 0x0200) Serial.print("  CONTACTOR_CLOSED");
+  if (status & 0x0400) Serial.print("  ISOLATION_FAULT");
+  if (status & 0x0800) Serial.print("  CELL_TOO_HIGH");
+  if (status & 0x1000) Serial.print("  CELL_TOO_LOW");
+  if (status & 0x2000) Serial.print("  CHARGE_HALT");
+  if (status & 0x4000) Serial.print("  FULL");
+  if (status & 0x8000) Serial.print("  INTERNAL_DISABLE");
 }
