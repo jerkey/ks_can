@@ -31,13 +31,11 @@ void loop(){
   send506(); // tell the battery what we want
   id=0;
   Canbus.message_rx(buffer,&id,&length);
-  if (id == 0x0188) { if (x188count++ > 6) { x188count=0;
+  if (id == 0x0188) { if (x188count++ > 20) { x188count=0;
       Serial.print("SOC:");
       Serial.print(buffer[0]);
       Serial.print("  status:");
-      Serial.print(buffer[2],BIN); // least significant byte first
-      Serial.print(".");
-      Serial.print(buffer[1],BIN);
+      printBMSStatusMessages(buffer[1]+buffer[2]*256);
       Serial.print("  charge cycles:");
       Serial.print(buffer[4]*256+buffer[3]);
       Serial.print("  balance mV:");
@@ -45,7 +43,7 @@ void loop(){
       Serial.print("  number of bricks:");
       Serial.println(buffer[7]);
     }
-  } else if (id == 0x0408) { if (x408count++ > 4) { x408count=0;
+  } else if (id == 0x0408) { if (x408count++ > 8) { x408count=0;
       Serial.print("Highest FET temp C:");
       Serial.print(buffer[0]);
       Serial.print("  Highest Pack Temp C:");
@@ -60,7 +58,7 @@ void loop(){
   } else if (id == 0x388 && buffer[0]<32) { // cell voltages won't fully populate unless 0x506 traffic is happening on the canbus
     cellVoltages[buffer[0]] = (buffer[2] << 8) + buffer[1];
     packVoltage = ((uint32_t)buffer[5] << 16) + ((uint16_t)buffer[4] << 8) + buffer[3];
-    if (millis() - lastCellPrint > 1000) { // time to print cell voltages
+    if (millis() - lastCellPrint > 5000) { // time to print cell voltages
       lastCellPrint = millis();
       Serial.print("cell voltages: ");
       for (int i=0; i<28; i++) {
