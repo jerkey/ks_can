@@ -42,7 +42,13 @@ void loop(){
       Serial.print("  balance mV:");
       Serial.print(buffer[6]*256+buffer[5]);
       Serial.print("  number of bricks:");
-      Serial.println(buffer[7]);
+      Serial.print(buffer[7]);
+      Serial.print("  command: 0x");
+      Serial.print(command, HEX);
+      Serial.print("  num_modules: ");
+      Serial.print(num_modules);
+      Serial.print("  time: ");
+      Serial.println((float)millis() / 1000.0,2);
     }
   } else if (id == 0x0408) { if (x408count > 8) { x408count=0; // add ++ after first x???count to enable display
       Serial.print("Highest FET temp C:");
