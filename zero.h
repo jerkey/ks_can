@@ -1,7 +1,13 @@
 // sequence of commands when charger is connected
-// 506     8       18      40      0       10      0       0       0
-// 506     8       98      40      0       10      0       0       0
-// 506     8       A8      41      1       10      0       0       0
+// 506     8       18      40      0       10      0       0       0 = ZERO_BMS_CONTROL_CODE_NOT_SAFETY_OVERRIDE + ZERO_BMS_CONTROL_CODE_DISCONNECT_MODULE + ZERO_BMS_CONTROL_CODE_OPEN_CONTACTOR;
+// 506     8       98      40      0       10      0       0       0 += ZERO_BMS_CONTROL_CODE_CHARGER_CONNECTED;
+// 506     8       A8      41      1       10      0       0       0 = ZERO_BMS_CONTROL_CODE_NOT_SAFETY_OVERRIDE + ZERO_BMS_CONTROL_CODE_CHARGER_CONNECTED + ZERO_BMS_CONTROL_CODE_CONNECT_MODULE + ZERO_BMS_CONTROL_CODE_CLOSE_FET;
+
+// cat first\ CANj.txt | grep '^506\s*8' | uniq
+// 506     8       58      40      0       10      0       FF      FF = ZERO_BMS_CONTROL_CODE_NOT_SAFETY_OVERRIDE + ZERO_BMS_CONTROL_CODE_KEY_ON + ZERO_BMS_CONTROL_CODE_DISCONNECT_MODULE + ZERO_BMS_CONTROL_CODE_OPEN_CONTACTOR;
+// 506     8       68      40      0       10      0       FF      FF = ZERO_BMS_CONTROL_CODE_NOT_SAFETY_OVERRIDE + ZERO_BMS_CONTROL_CODE_KEY_ON + ZERO_BMS_CONTROL_CODE_CONNECT_MODULE + ZERO_BMS_CONTROL_CODE_OPEN_CONTACTOR;
+// 506     8       68      40      1       10      0       FF      FF num_modules = 1
+// 506     8       58      40      1       10      0       FF      FF = ZERO_BMS_CONTROL_CODE_NOT_SAFETY_OVERRIDE + ZERO_BMS_CONTROL_CODE_KEY_ON + ZERO_BMS_CONTROL_CODE_DISCONNECT_MODULE + ZERO_BMS_CONTROL_CODE_OPEN_CONTACTOR;
 //
 #define ZERO_BMS_CONTROL_CODE_CLOSE_FET                 0x0001
 #define ZERO_BMS_CONTROL_CODE_OPEN_FET                  0x0002

@@ -55,7 +55,7 @@ char CanbusClass::message_rx(unsigned char *buffer, uint16_t *id, uint8_t *lengt
     }
 }
 
-char CanbusClass::zero_control(byte dest, uint16_t control, byte num_modules) {
+char CanbusClass::zero_control(byte dest, uint16_t control, byte num_modules, uint16_t message_tail) {
   tCAN message;
 
 
@@ -69,8 +69,8 @@ char CanbusClass::zero_control(byte dest, uint16_t control, byte num_modules) {
   message.data[3] = num_modules;
   message.data[4] = 0x10;
   message.data[5] = 0x00;
-  message.data[6] = 0x00;
-  message.data[7] = 0x00;
+  message.data[6] = message_tail & 255;
+  message.data[7] = message_tail >> 8;
 
   if (mcp2515_send_message(&message)) {
     return 1;
