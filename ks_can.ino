@@ -32,7 +32,7 @@ void loop(){
   send506(); // tell the battery what we want
   id=0;
   Canbus.message_rx(buffer,&id,&length);
-  if (id == 0x0188) { if (x188count++ > 20) { x188count=0;
+  if (id == 0x0188) { if (x188count++ > 10) { x188count=0; // add ++ after first x???count to enable display
       Serial.print("SOC:");
       Serial.print(buffer[0]);
       Serial.print("  status:");
@@ -44,7 +44,7 @@ void loop(){
       Serial.print("  number of bricks:");
       Serial.println(buffer[7]);
     }
-  } else if (id == 0x0408) { if (x408count++ > 8) { x408count=0;
+  } else if (id == 0x0408) { if (x408count > 8) { x408count=0; // add ++ after first x???count to enable display
       Serial.print("Highest FET temp C:");
       Serial.print(buffer[0]);
       Serial.print("  Highest Pack Temp C:");
@@ -59,7 +59,7 @@ void loop(){
   } else if (id == 0x388 && buffer[0]<32) { // cell voltages won't fully populate unless 0x506 traffic is happening on the canbus
     cellVoltages[buffer[0]] = (buffer[2] << 8) + buffer[1];
     packVoltage = ((uint32_t)buffer[5] << 16) + ((uint16_t)buffer[4] << 8) + buffer[3];
-    if (millis() - lastCellPrint > 5000) { // time to print cell voltages
+    if (millis() - lastCellPrint > 60000) { // how much time between printing cell voltages
       lastCellPrint = millis();
       Serial.print("cell voltages: ");
       for (int i=0; i<28; i++) {
@@ -75,7 +75,7 @@ void loop(){
     }
   } else if (id == 0x488) {// Serial.print("488 ");printBuf();
   } else if (id == 0x508) {// Serial.print("508 ");printBuf();
-  } else if (id == 0x308) { if (x308count++ > 4) { x308count=0;
+  } else if (id == 0x308) { if (x308count > 4) { x308count=0;
       Serial.print("BMS firmware Revision: ");
       Serial.print(buffer[0]);
       Serial.print("  BMS Board Revision: ");
