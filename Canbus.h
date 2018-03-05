@@ -17,7 +17,7 @@ class CanbusClass
 
 	CanbusClass();
         char init(unsigned char);
-	char zero_control(byte dest, uint16_t control, byte num_modules, uint16_t message_tail);
+	char message_tx(unsigned char *buffer, uint16_t *id, uint8_t *length);
 	char message_rx(unsigned char *buffer, uint16_t *id, uint8_t *length);
 private:
 

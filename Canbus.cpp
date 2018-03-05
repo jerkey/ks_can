@@ -44,10 +44,6 @@ char CanbusClass::message_rx(unsigned char *buffer, uint16_t *id, uint8_t *lengt
         buffer[5] = message.data[5];
         buffer[6] = message.data[6];
         buffer[7] = message.data[7];
-//        buffer[] = message[];
-//        buffer[] = message[];
-//        buffer[] = message[];
-//        buffer[] = message[];
       }
       else {
       Serial.println("Cannot read message");
@@ -55,22 +51,19 @@ char CanbusClass::message_rx(unsigned char *buffer, uint16_t *id, uint8_t *lengt
     }
 }
 
-char CanbusClass::zero_control(byte dest, uint16_t control, byte num_modules, uint16_t message_tail) {
+char CanbusClass::message_tx(unsigned char *buffer, uint16_t *id, uint8_t *length) {
   tCAN message;
-
-
-  // einige Testwerte
-  message.id = 0x506;
+  message.id = id;
   message.header.rtr = 0;
-  message.header.length = 8;
-  message.data[0] = dest;
-  message.data[1] = control & 255;
-  message.data[2] = control >> 8;
-  message.data[3] = num_modules;
-  message.data[4] = 0x10;
-  message.data[5] = 0x00;
-  message.data[6] = message_tail & 255;
-  message.data[7] = message_tail >> 8;
+  message.header.length = length;
+  message.data[0] = buffer[0];
+  message.data[1] = buffer[1];
+  message.data[2] = buffer[2];
+  message.data[3] = buffer[3];
+  message.data[4] = buffer[4];
+  message.data[5] = buffer[5];
+  message.data[6] = buffer[6];
+  message.data[7] = buffer[7];
 
   if (mcp2515_send_message(&message)) {
     return 1;
