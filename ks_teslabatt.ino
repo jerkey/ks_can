@@ -1,5 +1,5 @@
 // fuses must have lfuse bit 6 low, aka cleared, aka programmed, to enable CKOUT so that PE7 sends system clock to MCP2515 OSC1 input
-// E:F5, H:DA, L:BF
+// E:F5, H:DA, L:BF  avrdude -p m1280 -U lfuse:w:0xBF:m
 #include "Canbus.h"
 #include "mcp2515.h"
 #include "zero.h"
