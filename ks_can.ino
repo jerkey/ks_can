@@ -99,21 +99,63 @@ void loop(){
 }
 
 void send506() {
-  command   = CODE_NOT_SAFETY_OVERRIDE + CODE_DISCONNECT_MODULE + CODE_OPEN_CONTACTOR; // charger 1
-  //command = CODE_NOT_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_DISCONNECT_MODULE + CODE_OPEN_CONTACTOR + CODE_OPEN_FET; // first CAN 1
-  num_modules = 0;
-  //zero_control_tail = 0xFFFF; // send FF's for last two bytes (not when charging though?)
-  if (millis() > 5000) {
-    command += CODE_CHARGER_CONNECTED; // charger 2
-    //command = CODE_NOT_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_CONNECT_MODULE  + CODE_OPEN_CONTACTOR + CODE_CLOSE_FET; // first CAN 2
+  if (millis() < 10300) {
+    open_contactor();
+  } else if (millis() < 10500) {
+    close_contactor();
+  } else {
+    close_contactor2();
   }
-  if (millis() > 10000) {
-    num_modules = 1;
-    //command = CODE_NOT_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_CONNECT_MODULE  + CODE_CLOSE_CONTACTOR + CODE_CLOSE_FET; // first CAN 3
-    command = CODE_NOT_SAFETY_OVERRIDE + CODE_CHARGING_ENABLED + CODE_CHARGER_CONNECTED + CODE_CONNECT_MODULE + CODE_OPEN_CONTACTOR + CODE_CLOSE_CONTACTOR; // charger 3
-  }
-  Canbus.zero_control(8,command,num_modules,zero_control_tail);
 }
+
+void open_contactor() {
+  tCAN m;
+  m.id = 0x506;
+  m.header.rtr = 0;
+  m.header.length = 8;
+  m.data[0] = 8;
+  m.data[1] = 0x58;
+  m.data[2] = 0x40;
+  m.data[3] = 0;
+  m.data[4] = 0x10;
+  m.data[5] = 0;
+  m.data[6] = 0xff;
+  m.data[7] = 0xff;
+  mcp2515_send_message(&m);
+}
+
+void close_contactor() {
+  tCAN m;
+  m.id = 0x506;
+  m.header.rtr = 0;
+  m.header.length = 8;
+  m.data[0] = 8;
+  m.data[1] = 0x68;
+  m.data[2] = 0x40;
+  m.data[3] = 0;
+  m.data[4] = 0x10;
+  m.data[5] = 0;
+  m.data[6] = 0xff;
+  m.data[7] = 0xff;
+  mcp2515_send_message(&m);
+}
+
+void close_contactor2() {
+  tCAN m;
+  m.id = 0x506;
+  m.header.rtr = 0;
+  m.header.length = 8;
+  m.data[0] = 8;
+  m.data[1] = 0x68;
+  m.data[2] = 0x40;
+  m.data[3] = 1;
+  m.data[4] = 0x10;
+  m.data[5] = 0;
+  m.data[6] = 0xff;
+  m.data[7] = 0xff;
+  mcp2515_send_message(&m);
+}
+
 
 void printBuf() {
   for (int i=0; i < length; i++) {
