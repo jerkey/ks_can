@@ -99,18 +99,18 @@ void loop(){
 }
 
 void send506() {
-  command   = CODE_NOT_SAFETY_OVERRIDE + CODE_DISCONNECT_MODULE + CODE_OPEN_CONTACTOR; // charger 1
-  //command = CODE_NOT_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_DISCONNECT_MODULE + CODE_OPEN_CONTACTOR + CODE_OPEN_FET; // first CAN 1
+  //command   = CODE_NOT_SAFETY_OVERRIDE + CODE_DISCONNECT_MODULE + CODE_OPEN_CONTACTOR; // charger 1
+  command = CODE_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_DISCONNECT_MODULE + CODE_OPEN_CONTACTOR + CODE_OPEN_FET; // first CAN 1
   num_modules = 0;
-  //zero_control_tail = 0xFFFF; // send FF's for last two bytes (not when charging though?)
+  zero_control_tail = 0xFFFF; // send FF's for last two bytes (not when charging though?)
   if (millis() > 5000) {
-    command += CODE_CHARGER_CONNECTED; // charger 2
-    //command = CODE_NOT_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_CONNECT_MODULE  + CODE_OPEN_CONTACTOR + CODE_CLOSE_FET; // first CAN 2
+    //command += CODE_CHARGER_CONNECTED; // charger 2
+    command = CODE_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_CONNECT_MODULE  + CODE_OPEN_CONTACTOR + CODE_CLOSE_FET; // first CAN 2
   }
   if (millis() > 10000) {
-    num_modules = 1;
-    //command = CODE_NOT_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_CONNECT_MODULE  + CODE_CLOSE_CONTACTOR + CODE_CLOSE_FET; // first CAN 3
-    command = CODE_NOT_SAFETY_OVERRIDE + CODE_CHARGING_ENABLED + CODE_CHARGER_CONNECTED + CODE_CONNECT_MODULE + CODE_OPEN_CONTACTOR + CODE_CLOSE_CONTACTOR; // charger 3
+    if (millis() > 10400) num_modules = 1;
+    command = CODE_SAFETY_OVERRIDE + CODE_KEY_ON + CODE_CONNECT_MODULE  + CODE_CLOSE_CONTACTOR + CODE_CLOSE_FET; // first CAN 3
+    //command = CODE_NOT_SAFETY_OVERRIDE + CODE_CHARGING_ENABLED + CODE_CHARGER_CONNECTED + CODE_CONNECT_MODULE + CODE_OPEN_CONTACTOR + CODE_CLOSE_CONTACTOR; // charger 3
   }
   Canbus.zero_control(8,command,num_modules,zero_control_tail);
 }
