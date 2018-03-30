@@ -85,8 +85,8 @@ void fakeBMS() {
     length=4;
     buffer[0]=0x1B;           // 16 bit Max Regen power in kW (divide 16 bit by 100, so 65535 = 655.35kW)
     buffer[1]=0x19;           // 191B = 64.27kW  (26EA = 99.62kW)
-    buffer[2]=0xF5;           // 16 bit Max Drive power in kW (divide 16 bit by 100, so 65535 = 655.35kW)
-    buffer[3]=0x84;           // 84F5 = 340.37kW  (7EA3 = 324.19)
+    buffer[2]=0xE4;           // 16 bit Max Drive power in kW (divide 16 bit by 100, so 65535 = 655.35kW)
+    buffer[3]=0x25;           // 84F5 = 340.37kW  (7EA3 = 324.19) (25E4 = 97.00KW)
     Canbus.message_tx(buffer,id,length);
   }
 }
