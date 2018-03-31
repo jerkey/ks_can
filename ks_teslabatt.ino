@@ -88,6 +88,17 @@ void fakeBMS() {
     buffer[2]=0xE4;           // 16 bit Max Drive power in kW (divide 16 bit by 100, so 65535 = 655.35kW)
     buffer[3]=0x25;           // 84F5 = 340.37kW  (7EA3 = 324.19) (25E4 = 97.00KW)
     Canbus.message_tx(buffer,id,length);
+
+    id=546; // every 100ms      // 546 - BMS_chargerRequest
+    length=7;
+    buffer[0]=0xB8;           // 16 bit chargeCommand BMS Commanded AC power
+    buffer[1]=0x0B;           // units 0.0001 of kW, 0BB8 = 3.000 kW
+    buffer[2]=0xE0;           // 16 bit Pack Voltage Limit
+    buffer[3]=0x97;           // units 0.01 of V, 97E0 = 388.80 volts
+    buffer[4]=0xF0;           // units 0.16666, F0 = 40 amps
+    buffer[5]=4+16+32;        // 4="BMS Clear Faults"  16="Tells the charger to either follow the BMS_chargeLimit or to track the pack voltage to prevent current spikes"  32="BMS Charge Enable"
+    buffer[6]=0x00;           // 0 "PT_FC_STATUS_NOTREADY_SNA" + 16*0 "PT_FC_TYPE_SUPERCHARGER"
+    Canbus.message_tx(buffer,id,length);
   }
 }
 
