@@ -9,6 +9,11 @@ uint16_t x126count=0;
 uint16_t DI_vBat; // from BO_ 294
 uint16_t DI_motorCurrent = 0; // from BO_ 294
 
+#define BMS_CTRSET_CLOSED       2
+#define BMS_DRIVE               (1*16)
+#define BMS_CHARGER             (3*16)
+uint8_t BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // lower 4 bits watched by CP,CHG,DI, upper 4 bits watched by CP
+
 void setup(){
 Serial.begin(230400);
 Serial.println("CAN-Bus Demo");
@@ -18,9 +23,13 @@ if(Canbus.init(CANSPEED_500)) {
   } else {
     Serial.println("Can't init CAN");
   }
+  Serial.println("press ? for info"); // for charging
+  Serial.println("press d for drive mode (default)"); // for charging
+  Serial.println("press c for charge mode"); // for charging
 }
 
 void loop(){
+  if (Serial.available()) handleSerial();
   fakeBMS();
   id=0;
   Canbus.message_rx(buffer,&id,&length);
@@ -35,6 +44,16 @@ void loop(){
   }
   } else if (id == 0x288) {// Serial.print("288 ");printBuf();
   } else if (id) {// Serial.print(" 0x"); Serial.print(id,HEX);
+  }
+}
+
+void handleSerial() {
+  byte inByte = Serial.read();
+  Serial.print(char(inByte));
+  if (inByte == 'd') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // for driving
+  if (inByte == 'c') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
+  if (inByte == '?') {
+    Serial.println(BMS_stateByte,HEX); // for charging
   }
 }
 
@@ -76,7 +95,8 @@ void fakeBMS() {
     length=5;
     buffer[0]=0xD8;
     buffer[1]=0x08;
-    buffer[2]=0x12;
+    buffer[2]=BMS_stateByte; // lowest 4 bits are BMS_contactorState : 6 "BMS_CTRSET_CLEANING" 5 "BMS_CTRSET_WELD" 4 "BMS_CTRSET_SNA" 3 "BMS_CTRSET_OPENING" 2 "BMS_CTRSET_CLOSED" 1 "BMS_CTRSET_PRECHARGE" 0 "BMS_CTRSET_OPEN"
+    // upper 4 bits are BMS_state : 15 "BMS_SNA" 8 "BMS_WELD" 7 "BMS_FAULT" 6 "BMS_CLEARFAULT" 5 "BMS_CHARGERVOLTAGE" 4 "BMS_FASTCHARGE" 3 "BMS_CHARGER" 2 "BMS_SUPPORT" 1 "BMS_DRIVE" 0 "BMS_STANDBY"
     buffer[3]=0x72;
     buffer[4]=0x00;
     Canbus.message_tx(buffer,id,length);
