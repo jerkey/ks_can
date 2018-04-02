@@ -6,8 +6,10 @@ byte buffer[16];
 uint16_t id;
 uint8_t length;
 uint16_t x126count=0;
+uint16_t x227count=0;
 uint16_t DI_vBat; // from BO_ 294
 uint16_t DI_motorCurrent = 0; // from BO_ 294
+float CHGPH1_vBat = 0; // from BO_ 551 CHGPH1_HVStatus: 8 CHGPH1
 
 #define BMS_CTRSET_CLOSED       2
 #define BMS_DRIVE               (1*16)
@@ -43,6 +45,12 @@ void loop(){
     Serial.println(DI_motorCurrent);
   }
   } else if (id == 0x288) {// Serial.print("288 ");printBuf();
+  } else if (id == 0x227) {
+    CHGPH1_vBat = (((uint16_t)buffer[2]) + ((uint16_t)buffer[3] << 8)) * 0.010528564;// BO_ 551 CHGPH1_HVStatus: 8 CHGPH1
+    if (x227count++ > 5) { x227count=0;
+      Serial.print("CHGPH1_vBat:");
+      Serial.println(CHGPH1_vBat);
+    }
   } else if (id) {// Serial.print(" 0x"); Serial.print(id,HEX);
   }
 }
@@ -65,8 +73,8 @@ void fakeBMS() {
     every10 = time; // reset interval timer
     id=0x102; // every 10ms   // 0x102 - Dec 258 - BMS - HV Bus Status
     length=8;                 // 0x16 0x92 0x03 0xA7 0x06 0x4E 0x43 0x01
-    buffer[0]=DI_vBat*100%256;
-    buffer[1]=DI_vBat*100/256;
+    buffer[0]=(uint32_t)(CHGPH1_vBat*100)%256;
+    buffer[1]=(uint32_t)(CHGPH1_vBat*100)/256;
     buffer[2]=0x03;
     buffer[3]=0xA7;
     buffer[4]=0x06;
