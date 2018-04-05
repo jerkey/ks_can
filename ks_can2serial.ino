@@ -19,7 +19,7 @@ if(Canbus.init(CANSPEED_500)) {
 
 void loop(){
   id=0;
-  Canbus.message_rx(buffer,&id,&length);
+  while (id==0) Canbus.message_rx(buffer,&id,&length); // wait until a can packet comes in
   if (id > 2047) {
     Serial.print("WTF ");
     Serial.println(id);
