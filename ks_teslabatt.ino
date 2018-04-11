@@ -13,6 +13,7 @@ float CHGPH1_vBat = 0; // from BO_ 551 CHGPH1_HVStatus: 8 CHGPH1
 
 #define BMS_CTRSET_CLOSED       2
 #define BMS_DRIVE               (1*16)
+#define BMS_SUPPORT             (2*16)
 #define BMS_CHARGER             (3*16)
 uint8_t BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // lower 4 bits watched by CP,CHG,DI, upper 4 bits watched by CP
 
@@ -27,6 +28,7 @@ if(Canbus.init(CANSPEED_500)) {
   }
   Serial.println("press ? for info"); // for charging
   Serial.println("press d for drive mode (default)"); // for charging
+  Serial.println("press s for support mode"); // for charging
   Serial.println("press c for charge mode"); // for charging
 }
 
@@ -59,6 +61,7 @@ void handleSerial() {
   byte inByte = Serial.read();
   Serial.print(char(inByte));
   if (inByte == 'd') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // for driving
+  if (inByte == 's') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_SUPPORT; // for before charging
   if (inByte == 'c') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
   if (inByte == '?') {
     Serial.println(BMS_stateByte,HEX); // for charging
