@@ -130,6 +130,18 @@ void fakeBMS() {
     buffer[5]=4+16+32;        // 4="BMS Clear Faults"  16="Tells the charger to either follow the BMS_chargeLimit or to track the pack voltage to prevent current spikes"  32="BMS Charge Enable"
     buffer[6]=0x00;           // 0 "PT_FC_STATUS_NOTREADY_SNA" + 16*0 "PT_FC_TYPE_SUPERCHARGER"
     Canbus.message_tx(buffer,id,length);
+
+    id=930; // every 100ms    // 930  BMS_chargeStatus: 8 BMS
+    length=8;
+    buffer[0]=0xFF;
+    buffer[1]=0x0F;
+    buffer[2]=0x06;
+    buffer[3]=0x00;
+    buffer[4]=0x00;
+    buffer[5]=0x00;
+    buffer[6]=0x00;
+    buffer[7]=0x19;
+    Canbus.message_tx(buffer,id,length);
   }
 }
 
