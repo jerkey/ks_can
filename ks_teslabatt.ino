@@ -63,9 +63,24 @@ void loop(){
 void handleSerial() {
   byte inByte = Serial.read();
   Serial.print(char(inByte));
-  if (inByte == 'd') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // for driving
-  if (inByte == 's') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_SUPPORT; // for before charging
-  if (inByte == 'c') BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
+  if (inByte == 'd') {
+    BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // for driving
+    BMS_chargeEnable = 0;
+    BMS_chgVLimitMode = 0;
+    BMS_chargeCommand = 0;
+  }
+  if (inByte == 's') {
+    BMS_stateByte = BMS_CTRSET_CLOSED + BMS_SUPPORT; // for before charging
+    BMS_chargeEnable = 0;
+    BMS_chgVLimitMode = 0;
+    BMS_chargeCommand = 0;
+  }
+  if (inByte == 'c') {
+    BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
+    BMS_chargeEnable = 0x40;
+    BMS_chgVLimitMode = 0x10; // may need to wait 16 seconds before doing this one
+    BMS_chargeCommand = 10;
+  }
   if (inByte == '?') {
     Serial.println(BMS_stateByte,HEX); // for charging
   }
