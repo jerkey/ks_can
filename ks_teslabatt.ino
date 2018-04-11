@@ -10,6 +10,9 @@ uint16_t x227count=0;
 uint16_t DI_vBat; // from BO_ 294
 uint16_t DI_motorCurrent = 0; // from BO_ 294
 float CHGPH1_vBat = 0; // from BO_ 551 CHGPH1_HVStatus: 8 CHGPH1
+uint16_t BMS_chargeCommand = 0; // charging requested, in kW 0 to 10
+uint8_t  BMS_chargeEnable = 0; // 0 for don't charge, 0x40 for do charge
+uint8_t  BMS_chgVLimitMode = 0; // 0 for disable, 0x10 for enable
 
 #define BMS_CTRSET_CLOSED       2
 #define BMS_DRIVE               (1*16)
@@ -121,14 +124,14 @@ void fakeBMS() {
     Canbus.message_tx(buffer,id,length);
 
     id=546; // every 100ms      // 546 - BMS_chargerRequest
-    length=7;
-    buffer[0]=0xB8;           // 16 bit chargeCommand BMS Commanded AC power
-    buffer[1]=0x0B;           // units 0.0001 of kW, 0BB8 = 3.000 kW
-    buffer[2]=0xE0;           // 16 bit Pack Voltage Limit
-    buffer[3]=0x97;           // units 0.01 of V, 97E0 = 388.80 volts
+    length=6; // DBC says 7 bytes but the the 2018-4-9 log showed 6 bytes
+    buffer[0]=(BMS_chargeCommand * 100) & 255;           // 16 bit chargeCommand BMS Commanded AC power
+    buffer[1]=(BMS_chargeCommand * 100) >> 8;           // units 0.0001 of kW, 0BB8 = 3.000 kW
+    buffer[2]=38880 & 255;           // 16 bit Pack Voltage Limit
+    buffer[3]=38880 >> 8;           // units 0.01 of V, 97E0 = 388.80 volts
     buffer[4]=0xF0;           // units 0.16666, F0 = 40 amps
-    buffer[5]=4+16+32;        // 4="BMS Clear Faults"  16="Tells the charger to either follow the BMS_chargeLimit or to track the pack voltage to prevent current spikes"  32="BMS Charge Enable"
-    buffer[6]=0x00;           // 0 "PT_FC_STATUS_NOTREADY_SNA" + 16*0 "PT_FC_TYPE_SUPERCHARGER"
+    buffer[5]=BMS_chargeEnable + BMS_chgVLimitMode;        // 4="BMS Clear Faults"  16="Tells the charger to either follow the BMS_chargeLimit or to track the pack voltage to prevent current spikes"  32="BMS Charge Enable"
+    //buffer[6]=0x00;           // 0 "PT_FC_STATUS_NOTREADY_SNA" + 16*0 "PT_FC_TYPE_SUPERCHARGER"
     Canbus.message_tx(buffer,id,length);
 
     id=930; // every 100ms    // 930  BMS_chargeStatus: 8 BMS
