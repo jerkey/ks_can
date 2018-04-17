@@ -21,6 +21,9 @@ uint8_t  BMS_chargeClearFaults = 4; // 0 for disable, 4 for enable
 #define BMS_SUPPORT             (2*16)
 #define BMS_CHARGER             (3*16)
 uint8_t BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // lower 4 bits watched by CP,CHG,DI, upper 4 bits watched by CP
+bool displayCHGPHXalertID = true; // if true, enable display
+bool displayEveryCHGPH1_vBat = true; // if true, enable display of every one
+bool doFakeBMS = false; // if true, enable fakeBMS()
 
 void setup(){
 Serial.begin(230400);
@@ -39,7 +42,7 @@ if(Canbus.init(CANSPEED_500)) {
 
 void loop(){
   if (Serial.available()) handleSerial();
-  fakeBMS();
+  if (doFakeBMS) fakeBMS();
   id=0;
   Canbus.message_rx(buffer,&id,&length);
   if (id == 0x0126) { if (x126count++ > 5) { x126count=0; // add ++ after first x???count to enable display
@@ -72,6 +75,7 @@ void handleSerial() {
     BMS_chargeClearFaults = 0; // 4 = clear faults
     BMS_chargeLineCurrentLimit = 0;
     BMS_chargeCommand = 0;
+    doFakeBMS = true; // enable fakeBMS()
   }
   if (inByte == 's') {
     BMS_stateByte = BMS_CTRSET_CLOSED + BMS_SUPPORT; // for before charging
@@ -80,6 +84,7 @@ void handleSerial() {
     BMS_chargeClearFaults = 0; // 4 = clear faults
     BMS_chargeLineCurrentLimit = 0;
     BMS_chargeCommand = 0;
+    doFakeBMS = true; // enable fakeBMS()
   }
   if (inByte == 'c') {
     BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
@@ -88,6 +93,7 @@ void handleSerial() {
     BMS_chargeClearFaults = 0; // 4 = clear faults
     BMS_chargeLineCurrentLimit = 0xF0; // 0xF0 is 40 amps, this value can be 9 bits though
     BMS_chargeCommand = 3; // kilowatts
+    doFakeBMS = true; // enable fakeBMS()
   }
   if (inByte == 'C') {
     BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
@@ -96,6 +102,7 @@ void handleSerial() {
     BMS_chargeClearFaults = 4; // 4 = clear faults
     BMS_chargeLineCurrentLimit = 0xF0; // 0xF0 is 40 amps, this value can be 9 bits though
     BMS_chargeCommand = 3; // kilowatts
+    doFakeBMS = true; // enable fakeBMS()
   }
   if (inByte == '?') {
     Serial.println(BMS_stateByte,HEX); // for charging
