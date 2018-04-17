@@ -14,6 +14,7 @@ uint16_t BMS_chargeCommand = 0; // charging requested, in kW 0 to 10
 uint8_t  BMS_chargeEnable = 0; // 0 for don't charge, 0x40 for do charge
 uint8_t  BMS_chgVLimitMode = 0; // 0 for disable, 0x10 for enable
 uint8_t  BMS_chargeLineCurrentLimit = 0; // 0xF0 = 40 amps (this value is actually up to 9 bits)
+uint8_t  BMS_chargeClearFaults = 4; // 0 for disable, 4 for enable
 
 #define BMS_CTRSET_CLOSED       2
 #define BMS_DRIVE               (1*16)
@@ -68,6 +69,7 @@ void handleSerial() {
     BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // for driving
     BMS_chargeEnable = 0;
     BMS_chgVLimitMode = 0;
+    BMS_chargeClearFaults = 0; // 4 = clear faults
     BMS_chargeLineCurrentLimit = 0;
     BMS_chargeCommand = 0;
   }
@@ -75,6 +77,7 @@ void handleSerial() {
     BMS_stateByte = BMS_CTRSET_CLOSED + BMS_SUPPORT; // for before charging
     BMS_chargeEnable = 0;
     BMS_chgVLimitMode = 0;
+    BMS_chargeClearFaults = 0; // 4 = clear faults
     BMS_chargeLineCurrentLimit = 0;
     BMS_chargeCommand = 0;
   }
@@ -82,6 +85,15 @@ void handleSerial() {
     BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
     BMS_chargeEnable = 0x40; // who knows why it's this bit but it was observed in the log
     BMS_chgVLimitMode = 0x10; // may need to wait 16 seconds before doing this one
+    BMS_chargeClearFaults = 0; // 4 = clear faults
+    BMS_chargeLineCurrentLimit = 0xF0; // 0xF0 is 40 amps, this value can be 9 bits though
+    BMS_chargeCommand = 3; // kilowatts
+  }
+  if (inByte == 'C') {
+    BMS_stateByte = BMS_CTRSET_CLOSED + BMS_CHARGER; // for charging
+    BMS_chargeEnable = 0x40; // who knows why it's this bit but it was observed in the log
+    BMS_chgVLimitMode = 0; // zero at first
+    BMS_chargeClearFaults = 4; // 4 = clear faults
     BMS_chargeLineCurrentLimit = 0xF0; // 0xF0 is 40 amps, this value can be 9 bits though
     BMS_chargeCommand = 3; // kilowatts
   }
@@ -149,7 +161,7 @@ void fakeBMS() {
     buffer[2]=38880 & 255;           // 16 bit Pack Voltage Limit
     buffer[3]=38880 >> 8;           // units 0.01 of V, 97E0 = 388.80 volts
     buffer[4]=BMS_chargeLineCurrentLimit;           // units 0.16666, F0 = 40 amps
-    buffer[5]=BMS_chargeEnable + BMS_chgVLimitMode;        // 4="BMS Clear Faults"  16="Tells the charger to either follow the BMS_chargeLimit or to track the pack voltage to prevent current spikes"  32="BMS Charge Enable"
+    buffer[5]=BMS_chargeEnable + BMS_chgVLimitMode + BMS_chargeClearFaults;        // 4="BMS Clear Faults"  16="Tells the charger to either follow the BMS_chargeLimit or to track the pack voltage to prevent current spikes"  32="BMS Charge Enable"
     //buffer[6]=0x00;           // 0 "PT_FC_STATUS_NOTREADY_SNA" + 16*0 "PT_FC_TYPE_SUPERCHARGER"
     Canbus.message_tx(buffer,id,length);
 
