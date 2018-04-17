@@ -54,7 +54,7 @@ void loop(){
   } else if (id == 0x288) {// Serial.print("288 ");printBuf();
   } else if (id == 0x33C) {// BO_ 828 CHG_dtcMatrix: 8 CHG
     Serial.print((buffer[2] & 12) / 4); // print only CHG_d006_HVUV
-  } else if ((id == 1287 ||id == 1289 ||id == 1291) && displayCHGPHXalertID) {
+  } else if ((id == 1287) || (id == 1289) || (id == 1291) && displayCHGPHXalertID) {
     uint16_t alertID = ((uint16_t)buffer[0]) + (((uint16_t)buffer[1] & 127) << 8);
     Serial.print(id);
     Serial.print(":");
