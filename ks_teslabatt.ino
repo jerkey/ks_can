@@ -22,8 +22,8 @@ uint8_t  BMS_chargeClearFaults = 4; // 0 for disable, 4 for enable
 #define BMS_CHARGER             (3*16)
 uint8_t BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // lower 4 bits watched by CP,CHG,DI, upper 4 bits watched by CP
 bool displayCHGPHXalertID = true; // if true, enable display
-bool displayEveryCHGPH1_vBat = true; // if true, enable display of every one
-bool doFakeBMS = false; // if true, enable fakeBMS()
+bool displayEveryCHGPH1_vBat = false; // if true, enable display of every one
+bool doFakeBMS = true; // if true, enable fakeBMS()
 
 void setup(){
 Serial.begin(230400);
@@ -34,10 +34,7 @@ if(Canbus.init(CANSPEED_500)) {
   } else {
     Serial.println("Can't init CAN");
   }
-  Serial.println("press ? for info"); // for charging
-  Serial.println("press d for drive mode (default)"); // for charging
-  Serial.println("press s for support mode"); // for charging
-  Serial.println("press c for charge mode"); // for charging
+  printHelp();
 }
 
 void loop(){
@@ -55,9 +52,15 @@ void loop(){
     Serial.println(DI_motorCurrent);
   }
   } else if (id == 0x288) {// Serial.print("288 ");printBuf();
+  } else if ((id == 1287 ||id == 1289 ||id == 1291) && displayCHGPHXalertID) {
+    uint16_t alertID = ((uint16_t)buffer[0]) + (((uint16_t)buffer[1] & 127) << 8);
+    Serial.print(id);
+    Serial.print(":");
+    Serial.print(alertID);
+    Serial.print("  ");
   } else if (id == 0x227) {
     CHGPH1_vBat = (((uint16_t)buffer[2]) + ((uint16_t)buffer[3] << 8)) * 0.010528564;// BO_ 551 CHGPH1_HVStatus: 8 CHGPH1
-    if (x227count++ > 5) { x227count=0;
+    if ((displayEveryCHGPH1_vBat) || (x227count++ > 5)) { x227count=0;
       Serial.print("CHGPH1_vBat:");
       Serial.println(CHGPH1_vBat);
     }
@@ -106,7 +109,10 @@ void handleSerial() {
   }
   if (inByte == '?') {
     Serial.println(BMS_stateByte,HEX); // for charging
+    printHelp();
   }
+  if ((inByte & 223) == 'A') displayCHGPHXalertID = ! (inByte & 32); // capital A to display alertIDs
+  if ((inByte & 223) == 'E') displayEveryCHGPH1_vBat = ! (inByte & 32); // capital E to display every CHGPH1_vBat
 }
 
 void fakeBMS() {
@@ -193,4 +199,20 @@ void printBuf() {
     Serial.print(" ");
   }
   Serial.println();
+}
+
+void printHelp() {
+  Serial.println("press ? for info"); // for charging
+  Serial.println("press d for drive mode"); // for charging
+  Serial.println("press s for support mode"); // for charging
+  Serial.println("press c for charge mode with BMS_chgVLimitMode"); // for charging
+  Serial.println("press C for charge mode with BMS_chargeClearFaults"); // for charging
+  Serial.println("press A/a to enable CHGPHX_alertID display");
+  Serial.println("press E/e to display every CHGPH1_vBat");
+  Serial.print("doFakeBMS:");
+  Serial.print(doFakeBMS);
+  Serial.print("  displayCHGPHXalertID:");
+  Serial.print(displayCHGPHXalertID);
+  Serial.print("  displayEveryCHGPH1_vBat:");
+  Serial.println(displayEveryCHGPH1_vBat);
 }
