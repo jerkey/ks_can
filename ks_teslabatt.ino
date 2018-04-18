@@ -115,6 +115,7 @@ void handleSerial() {
   }
   if ((inByte & 223) == 'A') displayCHGPHXalertID = ! (inByte & 32); // capital A to display alertIDs
   if ((inByte & 223) == 'E') displayEveryCHGPH1_vBat = ! (inByte & 32); // capital E to display every CHGPH1_vBat
+  if ((inByte & 223) == 'F') doFakeBMS = ! (inByte & 32); // capital F to enable fakeBMS
 }
 
 void fakeBMS() {
@@ -211,6 +212,7 @@ void printHelp() {
   Serial.println("press C for charge mode with BMS_chargeClearFaults"); // for charging
   Serial.println("press A/a to enable CHGPHX_alertID display");
   Serial.println("press E/e to display every CHGPH1_vBat");
+  Serial.println("press F/f to enable/disable fakeBMS()");
   Serial.print("doFakeBMS:");
   Serial.print(doFakeBMS);
   Serial.print("  displayCHGPHXalertID:");
