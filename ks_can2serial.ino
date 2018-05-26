@@ -5,10 +5,12 @@
 byte buffer[16];
 uint16_t id;
 uint8_t length;
+unsigned long lastCanSent = 0; // last time we sent a canbus packet
+#define SENDBRUSA_INTERVAL      100 // how many milliseconds between messages sent
 
 void setup(){
 Serial.begin(230400);
-Serial.println("CAN-Bus Demo");
+Serial.println("CAN-Bus can2serial and control Brusa NLG5");
 
 if(Canbus.init(CANSPEED_500)) {
     Serial.println("CAN Init ok");
@@ -18,8 +20,19 @@ if(Canbus.init(CANSPEED_500)) {
 }
 
 void loop(){
+  int16_t deciVoltsRequested = -1; // we won't send CAN if negative
+  int16_t deciAmpsRequested = 50; // 50 = 5 Amps
   id=0;
-  while (id==0) Canbus.message_rx(buffer,&id,&length); // wait until a can packet comes in
+  while (id==0) {
+    Canbus.message_rx(buffer,&id,&length); // wait until a can packet comes in
+    if (Serial.available() > 0) {
+      int16_t inInt = Serial.parseInt(); // get next valid integer in the incoming serial stream (or 0)
+      Serial.print("deciVoltsRequested = ");
+      Serial.println(inInt);
+      deciVoltsRequested = inInt; // why not
+    }
+  }
+  if (deciVoltsRequested >= 0) sendBrusa(deciVoltsRequested, deciAmpsRequested);
   if (id > 2047) {
     Serial.print("WTF ");
     Serial.println(id);
@@ -31,10 +44,28 @@ void loop(){
   printBuf();
 }
 
+void sendBrusa(int16_t deciVoltsRequested, int16_t deciAmpsRequested) {
+  if (lastCanSent - millis() > SENDBRUSA_INTERVAL) {
+    lastCanSent = millis(); // reset the timer
+//Bytes: 1=NLG5_C_C_EN, 0, AC_I*10, BATT_V*10/256, BATT_V*10&255, BATT_I*10/256, BATT_I*10&255  (NOTE: add 2 to first byte to clear latched errors)
+    id = 0x618; // brusa control CAN ID
+    length = 7;
+    buffer[0] = 1; // 1=NLG5_C_C_EN=enable, +2 to clear latched faults
+    buffer[1] = 0; // MSB of mains current*10 = 0 always :)
+    buffer[2] = 100; // 100=10.0 AMPS mains current
+    buffer[3] = (deciVoltsRequested * 10) / 256;
+    buffer[4] = (deciVoltsRequested * 10) % 256;
+    buffer[5] = (deciAmpsRequested * 10) / 256;
+    buffer[6] = (deciAmpsRequested * 10) % 256;
+    Canbus.message_rx(buffer,&id,&length);
+  }
+}
+
 void printBuf() {
   for (int i=0; i < length; i++) {
     if (buffer[i] < 16) Serial.print("0");
     Serial.print(buffer[i],HEX);
   }
-  Serial.println();
+  Serial.print(" ");
+  Serial.println(millis());
 }
