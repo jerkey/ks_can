@@ -10,7 +10,7 @@ unsigned long lastCanSent = 0; // last time we sent a canbus packet
 
 void setup(){
 Serial.begin(230400);
-Serial.println("CAN-Bus can2serial and control Brusa NLG5");
+Serial.println("CAN-Bus control Brusa NLG5");
 
 if(Canbus.init(CANSPEED_500)) {
     Serial.println("CAN Init ok");
