@@ -51,6 +51,9 @@ void sendBrusa(int16_t deciVoltsRequested, int16_t deciAmpsRequested) {
     id = 0x618; // brusa control CAN ID
     length = 7;
     buffer[0] = 1; // 1=NLG5_C_C_EN=enable, +2 to clear latched faults
+    if (deciVoltsRequested==1) { // clear errors
+      buffer[0] = 3; // clear errors
+    }
     buffer[1] = 0; // MSB of mains current*10 = 0 always :)
     buffer[2] = 100; // 100=10.0 AMPS mains current
     buffer[3] = (deciVoltsRequested * 10) / 256;
