@@ -6,7 +6,9 @@ byte buffer[16];
 uint16_t id;
 uint8_t length;
 unsigned long lastCanSent = 0; // last time we sent a canbus packet
-#define SENDBRUSA_INTERVAL      100 // how many milliseconds between messages sent
+#define SENDBRUSA_INTERVAL      90 // how many milliseconds between messages sent
+int16_t deciVoltsRequested = -1; // we won't send CAN if negative
+int16_t deciAmpsRequested = 10; // 5 = 5 Amps
 
 void setup(){
 Serial.begin(230400);
@@ -20,8 +22,6 @@ if(Canbus.init(CANSPEED_500)) {
 }
 
 void loop(){
-  int16_t deciVoltsRequested = -1; // we won't send CAN if negative
-  int16_t deciAmpsRequested = 50; // 50 = 5 Amps
   id=0;
   while (id==0) {
     Canbus.message_rx(buffer,&id,&length); // wait until a can packet comes in
@@ -44,23 +44,30 @@ void loop(){
   printBuf();
 }
 
-void sendBrusa(int16_t deciVoltsRequested, int16_t deciAmpsRequested) {
-  if (lastCanSent - millis() > SENDBRUSA_INTERVAL) {
+void sendBrusa(int16_t deciVolts, int16_t deciAmps) {
+  if (millis() - lastCanSent > SENDBRUSA_INTERVAL) {
     lastCanSent = millis(); // reset the timer
 //Bytes: 1=NLG5_C_C_EN, 0, AC_I*10, BATT_V*10/256, BATT_V*10&255, BATT_I*10/256, BATT_I*10&255  (NOTE: add 2 to first byte to clear latched errors)
     id = 0x618; // brusa control CAN ID
     length = 7;
-    buffer[0] = 1; // 1=NLG5_C_C_EN=enable, +2 to clear latched faults
-    if (deciVoltsRequested==1) { // clear errors
-      buffer[0] = 3; // clear errors
+    buffer[0] = flipByte(1); // 1=NLG5_C_C_EN=enable, +2 to clear latched faults
+    if (deciVolts==1) { // clear errors
+      buffer[0] = flipByte(3); // clear errors
     }
-    buffer[1] = 0; // MSB of mains current*10 = 0 always :)
-    buffer[2] = 100; // 100=10.0 AMPS mains current
-    buffer[3] = (deciVoltsRequested * 10) / 256;
-    buffer[4] = (deciVoltsRequested * 10) % 256;
-    buffer[5] = (deciAmpsRequested * 10) / 256;
-    buffer[6] = (deciAmpsRequested * 10) % 256;
-    Canbus.message_rx(buffer,&id,&length);
+    buffer[1] = (0); // MSB of mains current*10 = 0 always :)
+    buffer[2] = (100); // 100=10.0 AMPS mains current
+    buffer[3] = (0x08);
+    buffer[4] = (0xfc);
+    buffer[5] = (0x00);
+    buffer[6] = (0x64);
+    //buffer[3] = (deciVolts * 10) / 256;
+    //buffer[4] = (deciVolts * 10) % 256;
+    //buffer[5] = (deciAmps * 10) / 256;
+    //buffer[6] = (deciAmps * 10) % 256;
+    Canbus.message_tx(buffer,&id,&length);
+    //id = 0x718;
+    //length = 8;
+    //Canbus.message_tx(buffer,&id,&length);
   }
 }
 
@@ -71,4 +78,11 @@ void printBuf() {
   }
   Serial.print(" ");
   Serial.println(millis());
+}
+
+byte flipByte(byte c) { // https://forum.arduino.cc/index.php?topic=117966.0
+  c = ((c>>1)&0x55)|((c<<1)&0xAA);
+  c = ((c>>2)&0x33)|((c<<2)&0xCC);
+  c = (c>>4) | (c<<4) ;
+  return c;
 }
