@@ -24,6 +24,7 @@ uint8_t BMS_stateByte = 0; // lower 4 bits watched by CP,CHG,DI, upper 4 bits wa
 bool displayCHGPHXalertID = true; // if true, enable display
 bool displayEveryCHGPH1_vBat = false; // if true, enable display of every one
 bool doFakeBMS = false; // if true, enable fakeBMS()
+unsigned long last0x227 = 0; // when's the last time we saw CHGPH1_vBat message 0x227
 
 void setup(){
 Serial.begin(230400);
@@ -39,6 +40,10 @@ if(Canbus.init(CANSPEED_500)) {
 
 void loop(){
   if (Serial.available()) handleSerial();
+  if ((CHGPH1_vBat < 300.0) || (millis() - last0x227 > 300)) {
+    if (doFakeBMS) Serial.println('turning off doFakeBMS to prevent HVUV error');
+    doFakeBMS = false; // charger's DC voltage is too low or information too old
+  }
   if (doFakeBMS) fakeBMS();
   id=0;
   Canbus.message_rx(buffer,&id,&length);
@@ -61,6 +66,7 @@ void loop(){
     Serial.print(alertID);
     Serial.print("  ");
   } else if (id == 0x227) {
+    last0x227 = millis(); // record the last time we saw this message
     CHGPH1_vBat = (((uint16_t)buffer[2]) + ((uint16_t)buffer[3] << 8)) * 0.010528564;// BO_ 551 CHGPH1_HVStatus: 8 CHGPH1
     if ((displayEveryCHGPH1_vBat) || (x227count++ > 5)) { x227count=0;
       Serial.print("CHGPH1_vBat:");
