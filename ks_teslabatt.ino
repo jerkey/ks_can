@@ -20,10 +20,10 @@ uint8_t  BMS_chargeClearFaults = 4; // 0 for disable, 4 for enable
 #define BMS_DRIVE               (1*16)
 #define BMS_SUPPORT             (2*16)
 #define BMS_CHARGER             (3*16)
-uint8_t BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // lower 4 bits watched by CP,CHG,DI, upper 4 bits watched by CP
+uint8_t BMS_stateByte = 0; // lower 4 bits watched by CP,CHG,DI, upper 4 bits watched by CP
 bool displayCHGPHXalertID = true; // if true, enable display
 bool displayEveryCHGPH1_vBat = false; // if true, enable display of every one
-bool doFakeBMS = true; // if true, enable fakeBMS()
+bool doFakeBMS = false; // if true, enable fakeBMS()
 
 void setup(){
 Serial.begin(230400);
