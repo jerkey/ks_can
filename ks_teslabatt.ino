@@ -73,6 +73,15 @@ void loop(){
 void handleSerial() {
   byte inByte = Serial.read();
   Serial.print(char(inByte));
+  if (inByte == 'o') {
+    BMS_stateByte = 0; // BMS_CTRSET_OPEN + BMS_STANDBY == 0
+    BMS_chargeEnable = 0;
+    BMS_chgVLimitMode = 0;
+    BMS_chargeClearFaults = 0; // 4 = clear faults
+    BMS_chargeLineCurrentLimit = 0;
+    BMS_chargeCommand = 0;
+    doFakeBMS = true; // enable fakeBMS()
+  }
   if (inByte == 'd') {
     BMS_stateByte = BMS_CTRSET_CLOSED + BMS_DRIVE; // for driving
     BMS_chargeEnable = 0;
@@ -206,6 +215,7 @@ void printBuf() {
 
 void printHelp() {
   Serial.println("press ? for info"); // for charging
+  Serial.println("press o for BMS OPEN/STANDBY mode (default)");
   Serial.println("press d for drive mode"); // for charging
   Serial.println("press s for support mode"); // for charging
   Serial.println("press c for charge mode with BMS_chgVLimitMode"); // for charging
