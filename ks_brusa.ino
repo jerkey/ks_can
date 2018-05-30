@@ -7,8 +7,8 @@ uint16_t id;
 uint8_t length;
 unsigned long lastCanSent = 0; // last time we sent a canbus packet
 #define SENDBRUSA_INTERVAL      90 // how many milliseconds between messages sent
-int16_t deciVoltsRequested = -1; // we won't send CAN if negative
-int16_t deciAmpsRequested = 10; // 5 = 5 Amps
+int16_t voltsRequested = -1; // we won't send CAN if negative
+int16_t ampsRequested = 10; // 5 = 5 amps
 
 void setup(){
 Serial.begin(230400);
@@ -27,12 +27,12 @@ void loop(){
     Canbus.message_rx(buffer,&id,&length); // wait until a can packet comes in
     if (Serial.available() > 0) {
       int16_t inInt = Serial.parseInt(); // get next valid integer in the incoming serial stream (or 0)
-      Serial.print("deciVoltsRequested = ");
+      Serial.print("voltsRequested = ");
       Serial.println(inInt);
-      deciVoltsRequested = inInt; // why not
+      voltsRequested = inInt; // why not
     }
   }
-  if (deciVoltsRequested >= 0) sendBrusa(deciVoltsRequested, deciAmpsRequested);
+  if (voltsRequested >= 0) sendBrusa(voltsRequested, ampsRequested);
   if (id > 2047) {
     Serial.print("WTF ");
     Serial.println(id);
@@ -44,14 +44,14 @@ void loop(){
   printBuf();
 }
 
-void sendBrusa(int16_t deciVolts, int16_t deciAmps) {
+void sendBrusa(int16_t volts, int16_t amps) {
   if (millis() - lastCanSent > SENDBRUSA_INTERVAL) {
     lastCanSent = millis(); // reset the timer
 //Bytes: 1=NLG5_C_C_EN, 0, AC_I*10, BATT_V*10/256, BATT_V*10&255, BATT_I*10/256, BATT_I*10&255  (NOTE: add 2 to first byte to clear latched errors)
     id = 0x618; // brusa control CAN ID
     length = 7;
     buffer[0] = flipByte(1); // 1=NLG5_C_C_EN=enable, +2 to clear latched faults
-    if (deciVolts==1) { // clear errors
+    if (volts==1) { // clear errors
       buffer[0] = flipByte(3); // clear errors
     }
     buffer[1] = (0); // MSB of mains current*10 = 0 always :)
@@ -60,10 +60,10 @@ void sendBrusa(int16_t deciVolts, int16_t deciAmps) {
     buffer[4] = (0xfc);
     buffer[5] = (0x00);
     buffer[6] = (0x64);
-    //buffer[3] = (deciVolts * 10) / 256;
-    //buffer[4] = (deciVolts * 10) % 256;
-    //buffer[5] = (deciAmps * 10) / 256;
-    //buffer[6] = (deciAmps * 10) % 256;
+    //buffer[3] = (volts * 10) / 256;
+    //buffer[4] = (volts * 10) % 256;
+    //buffer[5] = (amps * 10) / 256;
+    //buffer[6] = (amps * 10) % 256;
     Canbus.message_tx(buffer,&id,&length);
     //id = 0x718;
     //length = 8;
