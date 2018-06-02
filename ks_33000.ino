@@ -9,12 +9,13 @@ unsigned long lastCanSent = 0; // last time we sent a canbus packet
 #define SENDBRUSA_INTERVAL      90 // how many milliseconds between messages sent
 int16_t voltsRequested = -1; // we won't send CAN if negative
 int16_t ampsRequested = 10; // 5 = 5 amps
+byte candivisor = 29; // 29 for 33000 baud
 
 void setup(){
 Serial.begin(230400);
-Serial.println("CAN-Bus control Brusa NLG5");
+Serial.println("CAN-Bus listen at 33000 baud");
 
-if(Canbus.init(CANSPEED_500)) {
+if(Canbus.init(candivisor)) {
     Serial.println("CAN Init ok");
   } else {
     Serial.println("Can't init CAN");
@@ -26,13 +27,18 @@ void loop(){
   while (id==0) {
     Canbus.message_rx(buffer,&id,&length); // wait until a can packet comes in
     if (Serial.available() > 0) {
-      int16_t inInt = Serial.parseInt(); // get next valid integer in the incoming serial stream (or 0)
-      Serial.print("voltsRequested = ");
+      int inInt = Serial.parseInt(); // get next valid integer in the incoming serial stream (or 0)
+      Serial.print("candivisor = ");
       Serial.println(inInt);
-      voltsRequested = inInt; // why not
+      candivisor = (byte)inInt;
+      if(Canbus.init(candivisor)) {
+        Serial.println("CAN Init ok");
+      } else {
+        Serial.println("Can't init CAN");
+      }
     }
   }
-  if (voltsRequested >= 0) sendBrusa(voltsRequested, ampsRequested);
+  //if (voltsRequested >= 0) sendBrusa(voltsRequested, ampsRequested);
   if (id > 2047) {
     Serial.print("WTF ");
     Serial.println(id);
